@@ -1,0 +1,29 @@
+name: Fast Forward Composite Action
+description: Fast forward the target branch from a pull request.
+author: Lunei Solei
+inputs:
+  github_token:
+    description: The GitHub token.
+  merge:
+    description: Whether to automatically fast forward the target branch once a pull request is eligible to do so.
+    default: false
+
+outputs:
+  greeting:
+    description: 'The greeting message'
+    value: ${{ steps.greet.outputs.greeting }}
+
+runs:
+  using: composite
+  steps:
+    - id: fast-forward
+      shell: bash
+      run: |
+        export GITHUB_TOKEN=${{ inputs.github_token }}
+
+        if ${{ inputs.merge }} = true
+        then
+          ${{ github.action_path }}/scripts/fast-forward.sh --merge
+        else
+          ${{ github.action_path }}/scripts/fast-forward.sh
+        fi
