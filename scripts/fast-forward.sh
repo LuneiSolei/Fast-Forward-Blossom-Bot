@@ -24,7 +24,7 @@ case "${COMMENT:-always}" in
 esac
 
 # Ensure we're running via GitHub Actions
-if [ "${GITHUB_EVENT_PATH:-}" -z ]
+if [ -z "${GITHUB_EVENT_PATH:-}" ]
 then
     echo "GITHUB_EVENT_PATH environment variable must be set."
 fi
@@ -47,7 +47,7 @@ function github_event {
     while [ "$#" -gt 0 ]
     do
         VALUE=$(jq -r "${1}" <${GITHUB_EVENT_PATH})
-        if [ ${VALUE} -z ]
+        if [ -n "${VALUE}" ]
         then
             echo "${VALUE}"
             break
@@ -58,15 +58,15 @@ function github_event {
 }
 
 GITHUB_PR=$(mktemp)
-function github_pull_request
-    if [ "${GITHUB_PR}" -n ]
+function github_pull_request {
+    if [ ! -s "${GITHUB_PR}" ]
     then
         # Get the PR metadata
         github_event .pull_request >>${GITHUB_PR}
-        if [ "${GITHUB_PR}" -n ]
+        if [ ! -s "${GITHUB_PR}" ]
         then
             PR_URL="$(github_event .issue.pull_request.url)"
-            if [ "${PR_URL}" -z ]
+            if [ -z "${PR_URL}" ]
             then
                 echo "Unable to find pull request's context."
                 exit 1
@@ -92,7 +92,7 @@ function github_pull_request
     while [ "$#" -gt 0 ]
     do
         VALUE=$(jq -r "$1" <${GITHUB_PR})
-        if [ "${VALUE}" -n ]
+        if [ -n "${VALUE}" ]
         then
             echo "${VALUE}"
             break
@@ -115,7 +115,7 @@ LOG=$(mktemp)
 
     # Update sha
     BASE_SHA="$(test -d .git && git rev-parse origin/$BASE_REF 2>/dev/null || true)"
-    if [ "${BASE_SHA}" -z ]
+    if [ -z "${BASE_SHA}" ]
     then
         CLONE_URL=$(github_pull_request .base.repo.clone_url)
         git config --global credential.helper store
@@ -128,17 +128,17 @@ LOG=$(mktemp)
         CLONE_URL="${CLONE_URL%://*}://${GITHUB_ACTOR}@${CLONE_URL#*://}"
         git clone --quiet --single-branch --branch "${BASE_REF}" "${CLONE_URL}" .
 
-        BASE_SHA="(git rev-parse origin/${BASE_REF} 2>/dev/null}"
+        BASE_SHA="$(git rev-parse origin/${BASE_REF} 2>/dev/null)"
     fi
 
     PR_REF=$(github_pull_request .head.ref)
     PR_SHA=$(github_pull_request .head.sha)
 
-    if [ ! git cat-file -e "${PR_SHA}" 2>/dev/null ]
+    if ! git cat-file -e "${PR_SHA}" 2>/dev/null
     then
         # If PR is from a fork, fetch the fork's contents too
         CLONE_URL=$(github_pull_request .head.repo.clone_url)
-        git config --credential.helper store
+        git config --global credential.helper store
         {
             echo "url=${CLONE_URL}"
             echo "username=${GITHUB_ACTOR}"
@@ -150,7 +150,7 @@ LOG=$(mktemp)
     fi
 
     git branch -f "pull_request/${PR_REF}" "${PR_SHA}"
-    if [ "${1}" -eq "--merge" ]
+    if [ "${1}" = "--merge" ]
     then
         echo -n "Trying to "
     else
@@ -173,7 +173,7 @@ LOG=$(mktemp)
     git log --decorate=short -n 1 "${PR_SHA}"
 
     echo '```'
-    if [ ! git merge-base --is-ancestor "${BASE_REF}" "${PR_SHA}"
+    if ! git merge-base --is-ancestor "${BASE_REF}" "${PR_SHA}"
     then
         # PR needs to be rebased.
         echo -n "Can't fast forward \`${BASE_REF}\` (${BASE_SHA}) to"
@@ -182,16 +182,16 @@ LOG=$(mktemp)
         echo -n " \`${PR_REF}\` (${PR_SHA})."
 
         MERGE_BASE=$(git merge-base "${BASE_SHA}" "${PR_SHA}" || true)
-        if [ "${MERGE_BASE}" -z ]
+        if [ -z "${MERGE_BASE}" ]
         then
             echo " Branches don't appear to have a common ancestor."
         else
             echo " Branches appear to have diverged at ${MERGE_BASE}:"
             echo
-            echo'```shell'
+            echo '```shell'
 
             # If ${MERGE_BASE} is a root (has no parents), then it is not a valid reference
-            if [ $(git cat-file -t "${MERGE_BASE}^") -eq commit ]
+            if [ "$(git cat-file -t "${MERGE_BASE}^")" = "commit" ]
             then
                 EXCLUDE="^${MERGE_BASE}^"
             else
@@ -206,7 +206,7 @@ LOG=$(mktemp)
         fi
         echo
         echo "Rebase locally, and then force push to \`${PR_REF}\`."
-    elif [ ${1} -eq "--merge" ]
+    elif [ "${1}" = "--merge" ]
     then
         # Check that user is allowed and fast forward the target branch
         COLLABORATORS_URL="$(github_event .repository.collaborators_url)"
@@ -217,8 +217,8 @@ LOG=$(mktemp)
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "X-GitHub-Api-Version: 2026-03-10" \
-            ${COLLABORATORS_URL}/$(github_event .sender.login)/permission
-        if [ $(jq -r .user.permissions.push < ${PERM}) -eq true]
+            "${COLLABORATORS_URL}/$(github_event .sender.login)/permission"
+        if [ "$(jq -r .user.permissions.push < ${PERM})" = "true" ]
         then
             echo -n "Fast Forwarding \`${BASE_REF}\` (${BASE_SHA}) to"
             echo " \`${PR_REF}\` (${PR_SHA})."
@@ -249,7 +249,7 @@ LOG=$(mktemp)
 } 2>&1 | tee -a ${GITHUB_STEP_SUMMARY} "${LOG}"
 
 COMMENT_CONTENT=$(mktemp)
-jq -n --rawfile log "$LOG" '{ "body": ${log) }' >"${COMMENT_CONTENT}"
+jq -n --rawfile log "$LOG" '{ "body": $log }' >"${COMMENT_CONTENT}"
 
 # Set the comment output variable
 {
@@ -258,12 +258,12 @@ jq -n --rawfile log "$LOG" '{ "body": ${log) }' >"${COMMENT_CONTENT}"
     echo "EOF_${COMMENT_CONTENT}"
 } | tee -a "${GITHUB_OUTPUT}"
 
-if [ ${COMMENT} -eq always ] \
-    -o \( "${COMMENT}" -eq on-error -a "$(cat ${EXIT_CODE})" -ne 0 \)
+if [ "${COMMENT}" = "always" ] \
+    || [ "${COMMENT}" = "on-error" -a "$(cat ${EXIT_CODE})" -ne 0 ]
 then
     # Post the comment.
     COMMENTS_URL="$(github_pull_request .comments_url)"
-    if [ "${COMMENTS_URL}" -z ]
+    if [ -n "${COMMENTS_URL}" ]
     then
         echo "Posting comment to ${COMMENTS_URL}."
         curl --silent --show-error --location --globoff \
