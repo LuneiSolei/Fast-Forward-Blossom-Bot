@@ -118,6 +118,7 @@ LOG=$(mktemp)
     if [ -z "${BASE_SHA}" ]
     then
         CLONE_URL=$(github_pull_request .base.repo.clone_url)
+        echo "CLONE_URL=${CLONE_URL}"
         git config --global credential.helper store
         {
             echo "url=${CLONE_URL}"
