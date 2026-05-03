@@ -62,7 +62,7 @@ function github_pull_request {
     if [ ! -s "${GITHUB_PR}" ]
     then
         # Get the PR metadata
-        github_event .pull_request >>${GITHUB_PR}
+        github_event .issue.pull_request >>${GITHUB_PR}
         if [ ! -s "${GITHUB_PR}" ]
         then
             PR_URL="$(github_event .pull_request.url)"
@@ -119,7 +119,7 @@ LOG=$(mktemp)
     then
         CLONE_URL=$(github_pull_request .base.repo.clone_url)
         echo "Checking Clone URL"
-        jq -r .base.repo.clone_url <"${GITHUB_PPR}"
+        jq -r .base.repo.clone_url <"${GITHUB_PR}"
         git config --global credential.helper store
         {
             echo "url=${CLONE_URL}"
