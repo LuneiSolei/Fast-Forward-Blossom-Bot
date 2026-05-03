@@ -61,6 +61,7 @@ function github_event {
 
 GITHUB_PR=$(mktemp)
 function github_pull_request {
+    PR_URL="$(github_event .issue.pull_request.url .pull_request.url)"
     if [ -z "${PR_URL}" ] || [ "${PR_URL}" = "null" ]
     then
         echo "Unable to find pull request's context." >&2
