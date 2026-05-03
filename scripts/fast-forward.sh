@@ -30,7 +30,7 @@ then
 fi
 
 # Do some logging if DEBUG is enabled
-if [ "${DEBUG}" -eq 0 ]
+if [ "${DEBUG}" -eq 1 ]
 then
     {
         echo env
