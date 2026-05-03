@@ -46,53 +46,46 @@ fi
 function github_event {
     while [ "$#" -gt 0 ]
     do
-        VALUE=$(jq -r "${1}" <${GITHUB_EVENT_PATH})
-        if [ -n "${VALUE}" ]
+        VALUE=$(jq -r "${1}" <"${GITHUB_EVENT_PATH}")
+        if [ -n "${VALUE}" && "${VALUE}" != "null" ]
         then
             echo "${VALUE}"
-            break
+            return 0
         fi
 
         shift
     done
+
+    return 1
 }
 
 GITHUB_PR=$(mktemp)
 function github_pull_request {
-    if [ ! -s "${GITHUB_PR}" ]
+    if [ -z "${PR_URL}" ] || [ "${PR_URL}" = "null" ]
     then
-        # Get the PR metadata
-        github_event .issue.pull_request >>${GITHUB_PR}
-        if [ ! -s "${GITHUB_PR}" ]
-        then
-            PR_URL="$(github_event .pull_request.url)"
-            if [ -z "${PR_URL}" ]
-            then
-                echo "Unable to find pull request's context."
-                exit 1
-            fi
+        echo "Unable to find pull request's context." >&2
+        exit 1
+    fi
+    
+    curl --silent --show-error --location --globoff \
+    -X GET \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "X-GitHub-Api-Version: 2026-03-10" \
+    "${PR_URL}" >${GITHUB_PR}
 
-            curl --silent --show-error --location --globoff \
-            -X GET \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2026-03-10" \
-            "${PR_URL}" >${GITHUB_PR}
-        fi
-
-        if [ "${DEBUG}" -gt 0 ]
-        then
-            {
-                echo "pull_request (${GITHUB_PR}):"
-                cat "${GITHUB_PR}"
-            } >&2
-        fi
+    if [ "${DEBUG}" -gt 0 ]
+    then
+        {
+            echo "pull_request (${GITHUB_PR}):"
+            cat "${GITHUB_PR}"
+        } >&2
     fi
 
     while [ "$#" -gt 0 ]
     do
         VALUE=$(jq -r "$1" <${GITHUB_PR})
-        if [ -n "${VALUE}" ]
+        if [ -n "${VALUE}" && "${VALUE}" != null]
         then
             echo "${VALUE}"
             break
@@ -118,8 +111,6 @@ LOG=$(mktemp)
     if [ -z "${BASE_SHA}" ]
     then
         CLONE_URL=$(github_pull_request .base.repo.clone_url)
-        echo "Checking Clone URL"
-        jq -r .base.repo.clone_url <"${GITHUB_PR}"
         git config --global credential.helper store
         {
             echo "url=${CLONE_URL}"
