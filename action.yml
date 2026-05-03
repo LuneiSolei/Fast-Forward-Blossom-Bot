@@ -37,9 +37,9 @@ runs:
         DEBUG: ${{ inputs.debug }}
         COMMENT: ${{ inputs.comment }}
       run: |
-        export GITHUB_TOKEN=${{ inputs.github_token }}
+        export GITHUB_TOKEN="${{ inputs.github_token }}"
 
-        if [[ "${{ inputs.merge }}" = "true" ]]
+        if [[ "${{ inputs.merge }}" == "true" ]]
         then
           "${{ github.action_path }}/scripts/fast-forward.sh" --merge
         else
