@@ -33,6 +33,9 @@ runs:
   steps:
     - id: fast-forward
       shell: bash
+      env:
+        DEBUG: ${{ inputs.debug }}
+        COMMENT: ${{ inputs.comment }}
       run: |
         export GITHUB_TOKEN=${{ inputs.github_token }}
 
