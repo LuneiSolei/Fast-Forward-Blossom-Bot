@@ -119,7 +119,7 @@ LOG=$(mktemp)
     then
         CLONE_URL=$(github_pull_request .base.repo.clone_url)
         echo "Checking Clone URL"
-        jq -r .base.repo.clone_url <"${GITHUB_PPR}
+        jq -r .base.repo.clone_url <"${GITHUB_PPR}"
         git config --global credential.helper store
         {
             echo "url=${CLONE_URL}"
@@ -158,9 +158,11 @@ LOG=$(mktemp)
     else
         echo -n "Checking if we can "
     fi
-    echo " fast forward \`${BASE_REF}\` (${BASE_SHA}) to \`${PR_REF}\` (${PR_SHA})."
+    printf " fast forward \`%s\` (%s) to \`%s\` (%s).\n" \
+        "${BASE_REF}" "${BASE_SHA}" "${PR_REF}" "${PR_SHA}"
     echo
-    echo "Target branch (\`${BASE_REF}\`):"
+    printf "Target branch (\`%s\`):" \
+        "${BASE_REF}"
     echo
     echo '```shell'
     
@@ -168,7 +170,8 @@ LOG=$(mktemp)
 
     echo '```'
     echo
-    echo "Pull request (\`${PR_REF}\`):"
+    printf "Pull request (\`%s\`):" \
+        "${PR_REF}"
     echo
     echo '```shell'
 
