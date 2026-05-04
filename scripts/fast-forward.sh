@@ -11,7 +11,7 @@ echo 1 >${EXIT_CODE}
 LOG=$(mktemp)
 {
   # Get PR data
-  ./get-pr.sh
+  ${GITHUB_ACTION_PATH}/scripts/get-pr.sh
   
   # Create a local branch reference for the PR
   git branch -f "pull_request/${HEAD_REF}" "${HEAD_SHA}"
