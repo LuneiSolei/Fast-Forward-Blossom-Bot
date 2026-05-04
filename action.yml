@@ -46,7 +46,7 @@ runs:
       run: "${{ github.action_path }}/scripts/prechecks.sh"
     - id: get-pr
       shell: bash
-      run: "${{ github.action_path }}/scripts/get-pr.sh"    
+      run: "${{ github.action_path }}/scripts/get-pr.sh"
       
     - id: fast-forward
       shell: bash
@@ -55,4 +55,8 @@ runs:
         COMMENT: ${{ inputs.comment }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         AUTO_MERGE: ${{ inputs.auto_merge }}
+        BASE_REF: ${{ steps.get-pr.outputs.base-ref }}
+        BASE_SHA: ${{ steps.get-pr.outputs.base-sha }}
+        HEAD_REF: ${{ steps.get-pr.outputs.head-ref }}
+        HEAD_SHA: ${{ steps.get-pr.outputs.head-sha }}
       run: "${{ github.action_path}}/scripts/fast-forward.sh"
