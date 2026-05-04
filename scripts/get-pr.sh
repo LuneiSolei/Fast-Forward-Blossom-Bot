@@ -3,11 +3,11 @@
 set -e
 
 # Generate comment header. @&ZeroWidthSpace to prevent @-mention notifications
-echo "Triggered from $(./github-event.sh .comment.html_url .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)."
+echo "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .comment.html_url .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)."
 echo
 
 # Get the base branch name
-BASE_REF=$(./github-pull-request.sh .base.ref)
+BASE_REF=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.ref)
 echo "BASE_REF=${BASE_REF}" >> ${GITHUB_ENV}
 
 # Get the base branch SHA. 
@@ -18,7 +18,7 @@ echo "BASE_SHA=${BASE_SHA}" >> ${GITHUB_ENV}
 # Could not resolve the SHA, clone the repository
 if [[ -z "${BASE_SHA}" ]]
 then
-  CLONE_URL=$(./github-pull-request.sh .base.repo.clone_url)
+  CLONE_URL=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.repo.clone_url)
 
   # Configure git credential helper to store credentials
   git config --global credential.helper store
@@ -39,10 +39,10 @@ then
 fi
 
 # Get the head branch ref and commit SHA
-HEAD_REF=$(./github-pull-request.sh .head.ref)
+HEAD_REF=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .head.ref)
 echo "HEAD_REF=${HEAD_REF}" >> ${GITHUB_ENV}
 
-HEAD_SHA=$(./github-pull-request.sh .head.sha)
+HEAD_SHA=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .head.sha)
 echo "HEAD_SHA=${HEAD_SHA}" >> ${GITHUB_ENV}
 
 # Check if we have the PR commit already.
@@ -50,7 +50,7 @@ echo "HEAD_SHA=${HEAD_SHA}" >> ${GITHUB_ENV}
 if ! git cat-file -e "${HEAD_SHA}" 2>/dev/null
 then
   # If PR is from a fork, fetch the fork's contents too
-  CLONE_URL=$(./github_pull_request.sh .head.repo.clone_url)
+  CLONE_URL=$(${GITHUB_ACTION_PATH}/scripts/github_pull_request.sh .head.repo.clone_url)
 
   # Set up credentials again, but this time for the fork
   git config --global credential.helper store
