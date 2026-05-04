@@ -3,11 +3,11 @@
 set -e
 
 # Generate comment header. @&ZeroWidthSpace to prevent @-mention notifications
-echo "Triggered from $(./github_event.sh .comment.html_url .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)."
+echo "Triggered from $(./github-event.sh .comment.html_url .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)."
 echo
 
 # Get the base branch name
-BASE_REF=$(./github_pull_request.sh .base.ref)
+BASE_REF=$(./github-pull-request.sh .base.ref)
 echo "BASE_REF=${BASE_REF}" >> ${GITHUB_ENV}
 
 # Get the base branch SHA. 
@@ -18,7 +18,7 @@ echo "BASE_SHA=${BASE_SHA}" >> ${GITHUB_ENV}
 # Could not resolve the SHA, clone the repository
 if [[ -z "${BASE_SHA}" ]]
 then
-  CLONE_URL=$(./github_pull_request.sh .base.repo.clone_url)
+  CLONE_URL=$(./github-pull-request.sh .base.repo.clone_url)
 
   # Configure git credential helper to store credentials
   git config --global credential.helper store
@@ -39,10 +39,10 @@ then
 fi
 
 # Get the head branch ref and commit SHA
-HEAD_REF=$(./github_pull_request.sh .head.ref)
+HEAD_REF=$(./github-pull-request.sh .head.ref)
 echo "HEAD_REF=${HEAD_REF}" >> ${GITHUB_ENV}
 
-HEAD_SHA=$(./github_pull_request.sh .head.sha)
+HEAD_SHA=$(./github-pull-request.sh .head.sha)
 echo "HEAD_SHA=${HEAD_SHA}" >> ${GITHUB_ENV}
 
 # Check if we have the PR commit already.
