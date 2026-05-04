@@ -9,10 +9,10 @@ do
     if [ -n "${VALUE}" ] && [ "${VALUE}" != "null" ]
     then
         echo "${VALUE}"
-        return 0
+        exit 0
     fi
 
     shift
 done
 
-return 1
+exit 1
