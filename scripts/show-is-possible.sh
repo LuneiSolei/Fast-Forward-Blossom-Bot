@@ -1,0 +1,55 @@
+#! /bin/bash
+
+set -e
+
+# Fast-forward is possible and "merge" is enabled.
+# Check that user has permission to push to the repository.
+COLLABORATORS_URL="$(github_event .repository.collaborators_url)"
+
+# Build URL used to check for permissions
+COLLABORATORS_URL="${COLLABORATORS_URL}%\{/collaborator\}"
+
+# Fetch the user's permissions from GitHub API
+PERM=$(mktemp)
+curl --silent --show-error -o "${PERM}" --location --globoff \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  -H "X-GitHub-Api-Version: 2026-03-10" \
+  "${COLLABORATORS_URL}/$(./github-event.sh .sender.login)/permission"
+
+# Check if user has permission
+if [[ "$(jq -r .user.permissions.push < ${PERM})" == "true" ]]
+then
+  # User has permission
+  echo -n "Fast Forwarding \`${BASE_REF}\` (${BASE_SHA}) to"
+  echo " \`${HEAD_REF}\` (${HEAD_SHA})."
+
+  echo '```shell'
+  (
+    # Show the git command in the output
+    PS4='$ '
+    set -x
+
+    # Push the commit directly to the base branch.
+    # This fast-forwards BASE_REF to point to HEAD_SHA
+    git push origin "${HEAD_SHA}:${BASE_REF}"
+  )
+  echo '```'
+  echo "EXIT_CODE=0" >> ${GITHUB_ENV}
+else
+  # User does not have permission to push
+  echo -n "Sorry @$(./github-event.sh .sender.login),"
+  echo -n " it is possible to fast forward \`${BASE_REF}\` (${BASE_SHA})"
+  echo -n " to \`${HEAD_REF}\` (${HEAD_SHA}), but you don't appear to have"
+  echo " permission to push to this repository."
+fi
+else
+# Fast-forwarding is possible, but "merge" is disabled
+echo -n "It is possible to fast forward \`${BASE_REF}\` (${BASE_SHA})"
+echo -n " to \`${HEAD_REF}\` (${HEAD_SHA}). If you have write access to the"
+echo -n " target repository, you can add a comment with"
+echo -n " \`/fast-forward\` to fast forward \`${BASE_REF}\` to"
+echo " \`${HEAD_REF}\`."
+echo "EXIT_CODE=0" >> ${GITHUB_ENV}
+
+fi
