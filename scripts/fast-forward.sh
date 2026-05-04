@@ -70,7 +70,7 @@ if [ "${COMMENT}" = "always" ] \
     || [ "${COMMENT}" = "on-error" -a "$(cat ${EXIT_CODE})" -ne 0 ]
 then
   # Post the comment.
-  COMMENTS_URL="$(./github-pull-request.sh .comments_url)"
+  COMMENTS_URL="$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .comments_url)"
   if [ -n "${COMMENTS_URL}" ]
   then
     echo "Posting comment to ${COMMENTS_URL}."
