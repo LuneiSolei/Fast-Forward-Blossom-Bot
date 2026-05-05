@@ -45,14 +45,8 @@ then
 fi
 
 # Do some logging if DEBUG is enabled
-if [[ "${DEBUG}" == "true" ]]
-then
-  {
-    echo "env"
-    env
-    echo "GITHUB_ENV: ${GITHUB_ENV}"
-    cat "${GITHUB_ENV}"
-    echo "GITHUB_EVENT_PATH: ${GITHUB_EVENT_PATH}"
-    cat "${GITHUB_EVENT_PATH}"
-  } >&2
-fi
+echo "::debug::env"
+echo "::debug::GITHUB_ENV: ${GITHUB_ENV}"
+cat "::debug::${GITHUB_ENV}"
+echo "::debug::GITHUB_EVENT_PATH: ${GITHUB_EVENT_PATH}"
+cat "::debug::${GITHUB_EVENT_PATH}"
