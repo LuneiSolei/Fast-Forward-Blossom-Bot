@@ -10,9 +10,6 @@ echo 1 >${EXIT_CODE}
 # and the LOG file via "tee" at the end.
 LOG=$(mktemp)
 {
-  # Get PR data
-  ${GITHUB_ACTION_PATH}/scripts/get-pr.sh
-  
   # Create a local branch reference for the PR
   git branch -f "pull_request/${HEAD_REF}" "${HEAD_SHA}"
 
