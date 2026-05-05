@@ -24,6 +24,7 @@ printf 'base-sha=%s\n' "${BASE_SHA}" >> "${GITHUB_OUTPUT}"
 # Could not resolve the SHA, clone the repository
 if [[ -z "${BASE_SHA}" ]]
 then
+  echo "WE'RE HERE"
   CLONE_URL=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.repo.clone_url)
   approve_git_creds "${CLONE_URL}" "${GITHUB_ACTOR}" "${GITHUB_TOKEN}"
 
@@ -43,8 +44,6 @@ printf 'head-ref=%s\n' "${HEAD_REF}" >> "${GITHUB_OUTPUT}"
 
 HEAD_SHA=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .head.sha)
 printf 'head-sha=%s\n' "${HEAD_SHA}" >> "${GITHUB_OUTPUT}"
-
-echo "WE'RE HERE"
 
 # Check if we have the PR commit already.
 # Required if we're in a fork.
