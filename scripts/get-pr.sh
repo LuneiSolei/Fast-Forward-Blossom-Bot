@@ -12,7 +12,7 @@ printf '%s\n' "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .c
 .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)." \
 >> "${GITHUB_STEP_SUMMARY}"
 
-echo "WE HAVE GENERATED THE COMMIT HEADER"
+echo "script path: ${BASH_SOURCE[0]}"; ls -l "${BASH_SOURCE[0]}"
 
 # Get the base branch name
 BASE_REF=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.ref)
