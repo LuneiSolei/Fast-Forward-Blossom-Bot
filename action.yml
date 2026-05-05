@@ -59,4 +59,4 @@ runs:
         BASE_SHA: ${{ steps.get-pr.outputs.base-sha }}
         HEAD_REF: ${{ steps.get-pr.outputs.head-ref }}
         HEAD_SHA: ${{ steps.get-pr.outputs.head-sha }}
-      run: "${{ github.action_path}}/scripts/fast-forward.sh"
+      run: "${{ github.action_path }}/scripts/fast-forward.sh"
