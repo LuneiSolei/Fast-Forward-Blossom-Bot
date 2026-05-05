@@ -18,7 +18,7 @@ printf 'base-ref=%s\n' "${BASE_REF}" >> "${GITHUB_OUTPUT}"
 
 # Get the base branch SHA. 
 # If .git doesn't exist or branch is null, returns an empty string.
-BASE_SHA="$(test -d ".git" && git rev-parse origin/${BASE_REF}" 2>/dev/null || true)"
+BASE_SHA="$(test -d ".git" && git rev-parse "origin/${BASE_REF}" 2>/dev/null || true)"
 printf 'base-sha=%s\n' "${BASE_SHA}" >> "${GITHUB_OUTPUT}"
 
 # Could not resolve the SHA, clone the repository
