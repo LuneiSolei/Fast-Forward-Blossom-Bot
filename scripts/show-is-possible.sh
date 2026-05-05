@@ -43,12 +43,11 @@ else
   echo -n " to \`${HEAD_REF}\` (${HEAD_SHA}), but you don't appear to have"
   echo " permission to push to this repository."
 else
-# Fast-forwarding is possible, but "merge" is disabled
-echo -n "It is possible to fast forward \`${BASE_REF}\` (${BASE_SHA})"
-echo -n " to \`${HEAD_REF}\` (${HEAD_SHA}). If you have write access to the"
-echo -n " target repository, you can add a comment with"
-echo -n " \`/fast-forward\` to fast forward \`${BASE_REF}\` to"
-echo " \`${HEAD_REF}\`."
-echo "EXIT_CODE=0" >> ${GITHUB_ENV}
-
+  # Fast-forwarding is possible, but "merge" is disabled
+  echo -n "It is possible to fast forward \`${BASE_REF}\` (${BASE_SHA})"
+  echo -n " to \`${HEAD_REF}\` (${HEAD_SHA}). If you have write access to the"
+  echo -n " target repository, you can add a comment with"
+  echo -n " \`/fast-forward\` to fast forward \`${BASE_REF}\` to"
+  echo " \`${HEAD_REF}\`."
+  echo "EXIT_CODE=0" >> ${GITHUB_ENV}
 fi
