@@ -44,11 +44,11 @@ LOG=$(mktemp)
   # Check if the base branch is a direct ancestor of the head branch
   if ! git merge-base --is-ancestor "${BASE_REF}" "${HEAD_SHA}"
   then
-    ./show-not-possible.sh
+    ${GITHUB_ACTION_PATH}/scripts/show-not-possible.sh
 
   elif [[ "${AUTO_MERGE}" == "true" ]]
   then
-    ./show-is-possible.sh
+    ${GITHUB_ACTION_PATH}/scripts/show-is-possible.sh
   fi
 } 2>&1 | tee -a "${GITHUB_STEP_SUMMARY}" "${LOG}"
 
