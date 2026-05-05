@@ -16,3 +16,5 @@ curl --silent --show-error -o "${PERM}" --location --globoff \
   -H "Authorization: Bearer ${GITHUB_TOKEN}" \
   -H "X-GitHub-Api-Version: 2026-03-10" \
   "${COLLABORATORS_URL}/$(${GITHUB_ACTION_PATH}/scripts/github-event.sh .sender.login)/permission"
+
+printf 'has-perms=%s\n' "$(jq -r .user.permissions.push < ${PERM})" >> "${GITHUB_OUTPUT}"
