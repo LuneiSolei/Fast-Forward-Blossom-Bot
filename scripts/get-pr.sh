@@ -12,7 +12,17 @@ printf '%s\n' "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .c
 .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)." \
 >> "${GITHUB_STEP_SUMMARY}"
 
-echo .base.ref
+echo "CALLING helper: ${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.ref" >&2
+# run helper with trace and capture exit code + output
+set -x
+"${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh" .base.ref > /tmp/base-ref.out 2> /tmp/base-ref.err || true
+rc=$?
+set +x
+echo "helper rc=$rc" >&2
+echo "stdout:" >&2
+sed -n '1,120p' /tmp/base-ref.out >&2 || true
+echo "stderr:" >&2
+sed -n '1,120p' /tmp/base-ref.err >&2 || true
 
 # Get the base branch name
 BASE_REF=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.ref)
