@@ -29,7 +29,8 @@ PATHS=("$@")
 while [[ "$#" -gt 0 ]]
 do
     VALUE=$(jq -r "${1}" <"${GITHUB_PR}")
-    if [ -n "${VALUE}" ] && [ "${VALUE}" != null ]
+    echo "::debug::Got value '${VALUE}'"
+    if [ -n "${VALUE}" ] && [ "${VALUE}" != "null" ]
     then
         echo "${VALUE}"
         exit 0
