@@ -47,6 +47,6 @@ fi
 # Do some logging if DEBUG is enabled
 echo "::debug::env"
 echo "::debug::GITHUB_ENV: ${GITHUB_ENV}"
-cat "::debug::${GITHUB_ENV}"
+echo "::debug::${GITHUB_ENV}"
 echo "::debug::GITHUB_EVENT_PATH: ${GITHUB_EVENT_PATH}"
-cat "::debug::${GITHUB_EVENT_PATH}"
+echo "::debug::${GITHUB_EVENT_PATH}"
