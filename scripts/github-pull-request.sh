@@ -21,7 +21,8 @@ curl --silent --show-error --location --globoff \
 -H "X-GitHub-Api-Version: 2026-03-10" \
 "${PR_URL}" >"${GITHUB_PR}"
 
-echo "::debug::pull_request (${GITHUB_PR}):"
+echo "::debug::PR data structure:"
+jq '.' <"${GITHUB_PR}" >&2
 PATHS=("$@")
 
 # Extract field(s) from our now cached PR data by returning
