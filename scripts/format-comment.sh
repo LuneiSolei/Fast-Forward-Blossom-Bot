@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 # Create a temporary file to capture output for later use as a comment.
 # Everything inside the braces is captured to both the GitHub step summary
 # and the LOG file via "tee" at the end.
