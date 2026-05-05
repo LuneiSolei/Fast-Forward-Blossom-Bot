@@ -44,6 +44,8 @@ printf 'head-ref=%s\n' "${HEAD_REF}" >> "${GITHUB_OUTPUT}"
 HEAD_SHA=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .head.sha)
 printf 'head-sha=%s\n' "${HEAD_SHA}" >> "${GITHUB_OUTPUT}"
 
+echo "WE'RE HERE"
+
 # Check if we have the PR commit already.
 # Required if we're in a fork.
 if ! git cat-file -e "${HEAD_SHA}" 2>/dev/null
@@ -58,5 +60,3 @@ then
   # Fetch the PR commit
   git fetch --quiet "${CLONE_URL}" "${HEAD_SHA}"
 fi
-
-echo "WE'RE HERE"
