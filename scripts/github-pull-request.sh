@@ -2,6 +2,7 @@
 
 set -e
 
+echo "Testing"
 # Create a temp file for storing metadata
 GITHUB_PR=$(mktemp)
 
