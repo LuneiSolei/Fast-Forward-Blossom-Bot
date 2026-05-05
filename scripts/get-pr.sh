@@ -12,9 +12,7 @@ printf '%s\n' "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .c
 .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)." \
 >> "${GITHUB_STEP_SUMMARY}"
 
-echo "calling: ${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh"
-ls -l "${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh"
-sed -n '1,120p' "${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh"
+echo .base.ref
 
 # Get the base branch name
 BASE_REF=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.ref)
@@ -22,7 +20,7 @@ printf 'base-ref=%s\n' "${BASE_REF}" >> "${GITHUB_OUTPUT}"
 
 # Get the base branch SHA. 
 # If .git doesn't exist or branch is null, returns an empty string.
-BASE_SHA="$(test -d .git && git rev-parse origin/${BASE_REF} 2>/dev/null || true)"
+BASE_SHA="$(test -d ".git" && git rev-parse origin/${BASE_REF}" 2>/dev/null || true)"
 printf 'base-sha=%s\n' "${BASE_SHA}" >> "${GITHUB_OUTPUT}"
 
 # Could not resolve the SHA, clone the repository
