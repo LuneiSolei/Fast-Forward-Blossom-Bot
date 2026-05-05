@@ -22,6 +22,7 @@ curl --silent --show-error --location --globoff \
 "${PR_URL}" >"${GITHUB_PR}"
 
 echo "::debug::pull_request (${GITHUB_PR}):"
+PATHS=("$@")
 
 # Extract field(s) from our now cached PR data by returning
 # the first non-null value from the provided paths
@@ -35,9 +36,10 @@ do
     fi
 
     # This was empty, try the next path
+    ${1} >> ${}
     shift
 done
 
 # Nothing was found
-echo "::error::Nothing was found via ${1}."
+echo "::error::Nothing was found via ${PATHS}."
 exit 1
