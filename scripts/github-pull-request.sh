@@ -25,7 +25,7 @@ echo "::debug::pull_request (${GITHUB_PR}):"
 
 # Extract field(s) from our now cached PR data by returning
 # the first non-null value from the provided paths
-while [[ "$#" > 0 ]]
+while [[ "$#" -gt 0 ]]
 do
     VALUE=$(jq -r "$1" <${GITHUB_PR})
     if [ -n "${VALUE}" ] && [ "${VALUE}" != null ]
