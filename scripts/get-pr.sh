@@ -2,6 +2,11 @@
 
 set -e
 
+approve_git_creds() {
+  local url="${1}" user="${2}" pass="$3"
+  printf '%s\n' "url=${url}" "username=${user}" "password=${pass}" | git credential approve
+}
+
 # Generate comment header. @&ZeroWidthSpace to prevent @-mention notifications
 printf '%s\n' "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .comment.html_url \
 .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)." \
@@ -20,14 +25,7 @@ printf "base-sha=%s\n" "${BASE_SHA}" >> "${GITHUB_OUTPUT}"
 if [[ -z "${BASE_SHA}" ]]
 then
   CLONE_URL=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .base.repo.clone_url)
-
-  # Configure git credential helper to store credentials
-  git config --global credential.helper store
-  {
-    echo "url=${CLONE_URL}"
-    echo "username=${GITHUB_ACTOR}"
-    echo "password=${GITHUB_TOKEN}"
-  } | git credential approve
+  approve_git_creds "${CLONE_URL}" "${GITHUB_ACTOR}" "${GITHUB_TOKEN}"
 
   # Inject credentials into clone URL
   CLONE_URL="${CLONE_URL%://*}://${GITHUB_ACTOR}@${CLONE_URL#*://}"
@@ -52,14 +50,7 @@ if ! git cat-file -e "${HEAD_SHA}" 2>/dev/null
 then
   # If PR is from a fork, fetch the fork's contents too
   CLONE_URL=$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .head.repo.clone_url)
-
-  # Set up credentials again, but this time for the fork
-  git config --global credential.helper store
-  {
-    echo "url=${CLONE_URL}"
-    echo "username=${GITHUB_ACTOR}"
-    echo "password=${GITHUB_TOKEN}"
-  } | git credential approve
+  approve_git_creds "${CLONE_URL}" "${GITHUB_ACTOR}" "${GITHUB_TOKEN}"
 
   # Inject credentials into clone URL
   CLONE_URL="${CLONE_URL%://*}://${GITHUB_ACTOR}@${CLONE_URL#*://}"
