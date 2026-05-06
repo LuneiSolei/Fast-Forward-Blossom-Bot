@@ -10,7 +10,7 @@ COLLABORATORS_URL="${COLLABORATORS_URL}%\{/collaborator\}"
 
 # Fetch the user's permissions from GitHub API
 PERM=$(mktemp)
-curl --silent --show-error -o "${PERM}" --location --globoff \
+curl --show-error -o "${PERM}" --location --globoff \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer ${GITHUB_TOKEN}" \
   -H "X-GitHub-Api-Version: 2026-03-10" \
