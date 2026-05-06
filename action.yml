@@ -39,18 +39,18 @@ runs:
         COMMENT: ${{ inputs.comment }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         AUTO_MERGE: ${{ inputs.auto_merge }}
-      run: "${{ github.action_path }}/scripts/prechecks.sh"
+      run: ${{ github.action_path }}/scripts/prechecks.sh
     - id: get-pr
       shell: bash
-      run: "${{ github.action_path }}/scripts/get-pr.sh"
+      run: ${{ github.action_path }}/scripts/get-pr.sh
     - id: verify-state
       shell: bash
-      run: "${{ github.action_path }}/scripts/verify-state.sh"
+      run: ${{ github.action_path }}/scripts/verify-state.sh
     - id: fast-forward
       shell: bash
-      run: "${{ github.action_path }}/scripts/fast-forward.sh"
+      run: ${{ github.action_path }}/scripts/fast-forward.sh
     - id: post-comment
       shell: bash
       env:
         PUSH_LOG: ${{ steps.fast-forward.outputs.push-log }}
-      run: "${{ github.action_path }}/scripts/post-comment.sh"
+      run: ${{ github.action_path }}/scripts/post-comment.sh
