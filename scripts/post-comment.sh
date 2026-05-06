@@ -15,10 +15,10 @@ COMMENT_FILE=$(mktemp)
       ;;
   esac
   
-  printf "fast forward `%s` (%s) to `%s` (%s).\n\n" "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}"
+  printf "fast forward \`%s\ (%s) to \%s\ (%s).\n\n" "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}"
   
   # Show the current state of the target branch
-  printf "Target branch (`%s`):\n\n" "${BASE_REF}"
+  printf "Target branch (\`%s\`):\n\n" "${BASE_REF}"
   printf "\`\`\`shell\n"
   git log --decorate=short -n 1 "${BASE_SHA}"
   printf "\`\`\`\n\n"
@@ -71,7 +71,7 @@ then
 elif [[ "${AUTO_MERGE}" == "false" ]]
 then
   # Fast-forwarding is possible, but "auto merge" is disabled
-  printf "It is possible to fast forward `%s` (%s) to `%s` (%s), " "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}" >> "${COMMENT_FILE}"
+  printf "It is possible to fast forward \`%s\` (%s) to \`%s\` (%s), " "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}" >> "${COMMENT_FILE}"
   printf "but 'auto_merge' has been disabled.\n" >> "${COMMENT_FILE}"
   
   echo "EXIT_CODE=0" >> ${GITHUB_ENV}
@@ -86,8 +86,8 @@ then
   echo "EXIT_CODE=0" >> ${GITHUB_ENV}
 elif [[ -n "${MERGE_COMMAND}" ]]
 then
-  printf "It is possible to fast forward `%s` (%s) " "${BASE_REF}" "${BASE_SHA}" >> "${COMMENT_FILE}"
-  printf "to `%s` (%s). If you have write access to the " "${HEAD_REF}" "${HEAD_SHA}" >> "${COMMENT_FILE}"
+  printf "It is possible to fast forward \`%s\` (%s) " "${BASE_REF}" "${BASE_SHA}" >> "${COMMENT_FILE}"
+  printf "to \`%s\` (%s). If you have write access to the " "${HEAD_REF}" "${HEAD_SHA}" >> "${COMMENT_FILE}"
   printf "target repository, you can add the comment \`/fastforward\` to fast forward " >> "${COMMENT_FILE}"
   printf "\`%s\` to \`%s\`.\n" "${BASE_REF}" "${HEAD_REF}" >> "${COMMENT_FILE}"
   
@@ -97,7 +97,7 @@ fi
 COMMENT_CONTENT=$(mktemp)
 # Write to GitHub output
 {
-  printf "comment-body<<EOF"
+  printf "comment-body<<EOF\n"
   cat "${COMMENT_FILE}"
   printf "\n"
   cat "${PUSH_LOG}"
@@ -105,7 +105,7 @@ COMMENT_CONTENT=$(mktemp)
 } >> "${COMMENT_CONTENT}"
 
 # Determine whether to post the comment based on the setting
-if [ "${COMMENT}" = "always" ] || [ "${COMMENT}" = "on-error" -a "$(cat ${EXIT_CODE})" -ne 0 ]
+if [ "${COMMENT}" = "always" ] || [ "${COMMENT}" = "on-error" -a "${EXIT_CODE}" -ne 0 ]
 then
   # Post the comment.
   COMMENTS_URL="$(${GITHUB_ACTION_PATH}/scripts/github-pull-request.sh .comments_url)"
