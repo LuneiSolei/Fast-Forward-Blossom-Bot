@@ -24,8 +24,4 @@ then
 fi
 
 # Write to GitHub output
-{
-  printf "push-log<<EOF\n"
-  cat "${PUSH_LOG}"
-  printf "EOF"
-} >> "${GITHUB_OUTPUT}"
+  printf "PUSH_LOG=%s\n" "${PUSH_LOG}" >> "${GITHUB_ENV}"
