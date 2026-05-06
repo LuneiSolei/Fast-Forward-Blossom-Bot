@@ -4,11 +4,11 @@ set -e
 
 approve_git_creds() {
   local url="${1}" user="${2}" pass="$3"
-  printf '%s\n' "url=${url}" "username=${user}" "password=${pass}" | git credential approve
+  printf "%s\n" "url=${url}" "username=${user}" "password=${pass}" | git credential approve
 }
 
 # Generate comment header. @&ZeroWidthSpace to prevent @-mention notifications
-printf '%s\n' "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .comment.html_url \
+printf "%s\n" "Triggered from $(${GITHUB_ACTION_PATH}/scripts/github-event.sh .comment.html_url \
 .pull_request.html_url) by [@&ZeroWidthSpace;${GITHUB_ACTOR}](https://github.com/$GITHUB_ACTOR)." \
 >> "${GITHUB_STEP_SUMMARY}"
 
@@ -54,7 +54,7 @@ then
   git fetch --quiet "${CLONE_URL}" "${HEAD_SHA}"
 fi
 
-printf 'BASE_REF=%s\n' "${BASE_REF}" >> "${GITHUB_ENV}"
-printf 'BASE_SHA=%s\n' "${BASE_SHA}" >> "${GITHUB_ENV}"
-printf 'HEAD_REF=%s\n' "${HEAD_REF}" >> "${GITHUB_ENV}"
-printf 'HEAD_SHA=%s\n' "${HEAD_SHA}" >> "${GITHUB_ENV}"
+printf "BASE_REF=%s\n" "${BASE_REF}" >> "${GITHUB_ENV}"
+printf "BASE_SHA=%s\n" "${BASE_SHA}" >> "${GITHUB_ENV}"
+printf "HEAD_REF=%s\n" "${HEAD_REF}" >> "${GITHUB_ENV}"
+printf "HEAD_SHA=%s\n" "${HEAD_SHA}" >> "${GITHUB_ENV}"
