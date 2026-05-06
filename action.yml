@@ -21,11 +21,6 @@ inputs:
       "never" - No comment is posted. The comment is still available 
       via the comment output variable and in the step's summary.
     default: on-error
-  merge_command:
-    description: >
-      The command that a user must put in their comment on a pull request to 
-      invoke the bot on that pull request.
-    default: /fastforward
 
 outputs:
   comment:
