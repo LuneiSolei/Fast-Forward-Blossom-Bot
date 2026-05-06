@@ -54,7 +54,7 @@ then
   git fetch --quiet "${CLONE_URL}" "${HEAD_SHA}"
 fi
 
-printf 'base-ref=%s\n' "${BASE_REF}" >> "${GITHUB_OUTPUT}"
-printf 'base-sha=%s\n' "${BASE_SHA}" >> "${GITHUB_OUTPUT}"
-printf 'head-ref=%s\n' "${HEAD_REF}" >> "${GITHUB_OUTPUT}"
-printf 'head-sha=%s\n' "${HEAD_SHA}" >> "${GITHUB_OUTPUT}"
+printf 'BASE_REF=%s\n' "${BASE_REF}" >> "${GITHUB_ENV}"
+printf 'BASE_SHA=%s\n' "${BASE_SHA}" >> "${GITHUB_ENV}"
+printf 'HEAD_REF=%s\n' "${HEAD_REF}" >> "${GITHUB_ENV}"
+printf 'HEAD_SHA=%s\n' "${HEAD_SHA}" >> "${GITHUB_ENV}"
