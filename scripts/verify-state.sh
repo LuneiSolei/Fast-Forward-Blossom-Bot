@@ -17,7 +17,7 @@ curl --silent --show-error -o "${PERM}" --location --globoff \
   "${COLLABORATORS_URL}/$(${GITHUB_ACTION_PATH}/scripts/github-event.sh .sender.login)/permission"
 
 # Output push permissions state
-printf 'has-perms=%s\n' "$(jq -r .user.permissions.push < ${PERM})" >> "${GITHUB_OUTPUT}"
+printf 'HAS_PERMS=%s\n' "$(jq -r .user.permissions.push < ${PERM})" >> "${GITHUB_ENV}"
 
 # Verify if fast forwarding is possible
 # Create a local branch reference for the PR
@@ -25,4 +25,4 @@ git branch -f "pull_request/${HEAD_REF}" "${HEAD_SHA}"
 
 # Check if the base branch is a direct ancestor of the head branch
 IS_POSSIBLE=! git merge-base --is-ancestor "${BASE_REF}" "${HEAD_SHA}"
-printf 'is-possible=%s\n' "${IS_POSSIBLE}" >> "${GITHUB_OUTPUT}"
+printf 'IS_POSSIBLE=%s\n' "${IS_POSSIBLE}" >> "${GITHUB_ENV}"
