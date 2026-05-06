@@ -4,18 +4,11 @@ set -e
 
 # Ensure COMMENT value is valid
 case "${COMMENT}" in
-  always|on-error|never) ;;
+  always|on-error|never) 
+    echo "COMMENT=${COMMENT}" >> "${GITHUB_ENV}"
+    ;;
   *)
     echo "::error::Invalid value '${COMMENT}' for COMMENT." >&2
-    exit 1
-    ;;
-esac
-
-# Ensure DEBUG value is valid
-case "${DEBUG}" in
-  true|false) ;;
-  *) 
-    echo "::error::Invalid value '${DEBUG}' for DEBUG." >&2
     exit 1
     ;;
 esac
@@ -25,17 +18,20 @@ if [[ -z "${GITHUB_TOKEN}" ]]
 then
   echo "::error::Invalid value '${GITHUB_TOKEN}' for GITHUB_TOKEN." >&2
   exit 1
+else
+  echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> "${GITHUB_ENV}"
 fi
 
 # Ensure AUTO_MERGE is valid
 case "${AUTO_MERGE}" in
-  true|false) ;;
+  true|false) 
+    echo "AUTO_MERGE=${AUTO_MERGE}" >> "${AUTO_MERGE}"
+    ;;
   *)
     echo "::error::Invalid value '${AUTO_MERGE}' for AUTO_MERGE." >&2
     exit 1
     ;;
 esac
-
 
 # Ensure we're running via GitHub Actions
 if [[ -z "${GITHUB_EVENT_PATH}" ]]
@@ -44,7 +40,6 @@ then
   exit 1
 fi
 
-# Do some logging if DEBUG is enabled
 echo "::debug::env"
 echo "::debug::GITHUB_ENV: ${GITHUB_ENV}"
 echo "::debug::${GITHUB_ENV}"
