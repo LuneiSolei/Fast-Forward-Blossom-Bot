@@ -51,6 +51,4 @@ runs:
       run: ${{ github.action_path }}/scripts/fast-forward.sh
     - id: post-comment
       shell: bash
-      env:
-        PUSH_LOG: ${{ steps.fast-forward.outputs.push-log }}
       run: ${{ github.action_path }}/scripts/post-comment.sh
