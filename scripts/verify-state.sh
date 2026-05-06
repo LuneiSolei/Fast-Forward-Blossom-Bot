@@ -24,5 +24,5 @@ printf "HAS_PERMS=%s\n" "$(jq -r .user.permissions.push < ${PERM})" >> "${GITHUB
 git branch -f "pull_request/${HEAD_REF}" "${HEAD_SHA}"
 
 # Check if the base branch is a direct ancestor of the head branch
-IS_POSSIBLE=! git merge-base --is-ancestor "${BASE_REF}" "${HEAD_SHA}"
+IS_POSSIBLE=$(git merge-base --is-ancestor "${BASE_REF}" "${HEAD_SHA}" && echo true || echo false)
 printf "IS_POSSIBLE=%s\n" "${IS_POSSIBLE}" >> "${GITHUB_ENV}"
