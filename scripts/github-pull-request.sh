@@ -9,7 +9,7 @@ GITHUB_PR=$(mktemp)
 # Attempt to get PR URL from issue_comment first, then pull_request event data
 PR_URL="$(${GITHUB_ACTION_PATH}/scripts/github-event.sh .issue.pull_request.url .pull_request.url)" || {
   # Nothing was found
-  echo "::error::Unable to find pull request's context."
+  printf '::error::Unable to find pull request\'s context.' >&2
   exit 1
 }
 
@@ -28,7 +28,6 @@ PATHS=("$@")
 while [[ "$#" -gt 0 ]]
 do
     VALUE=$(jq -r "${1}" <"${GITHUB_PR}")
-    echo "::debug::Got value '${VALUE}'" >&2
     if [ -n "${VALUE}" ] && [ "${VALUE}" != "null" ]
     then
         echo "${VALUE}"
@@ -40,5 +39,5 @@ do
 done
 
 # Nothing was found
-echo "::error::Nothing was found via ${PATHS}." >&2
+printf '::error::Nothing was found via %s\n' "${PATHS}" >&2
 exit 1
