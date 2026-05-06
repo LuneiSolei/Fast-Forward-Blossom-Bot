@@ -60,9 +60,14 @@ runs:
       shell: bash
       env:
         AUTO_MERGE: ${{ inputs.auto_merge }}
+        BASE_REF: ${{ steps.get-pr.outputs.base-ref }}
+        BASE_SHA: ${{ steps.get-pr.outputs.base-sha }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
         HAS_PERMS: ${{ steps.check-perms.outputs.has-perms }}
+        HEAD_REF: ${{ steps.get-pr.outputs.head-ref }}
+        HEAD_SHA: ${{ steps.get-pr.outputs.head-sha }}
         IS_POSSIBLE: ${{ steps.check-is-possible.outputs.is-possible }}
-      run:
+      run: "${{ github.action_path }}/scripts/perform-merge.sh"
       
     - id: fast-forward
       shell: bash
