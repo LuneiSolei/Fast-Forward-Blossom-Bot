@@ -4,8 +4,7 @@ set -e
 
 # Build URL used to check for permissions
 COLLABORATORS_URL="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.collaborators_url)"
-USERNAME="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .sender.login)"
-COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}/${USERNAME}"
+COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}"
 
 # Fetch the user's permissions from GitHub API
 PERM=$(mktemp)
@@ -18,7 +17,7 @@ curl --silent --show-error -o "${PERM}" --location --globoff \
 echo "${COLLABORATORS_URL}"
 
 # Output push permissions state
-printf "HAS_PERMS=%s\n" "$(jq -r .user.permissions.push < "${PERM}")" >> "${GITHUB_ENV}"
+printf "HAS_PERMS=%s\n" "$(jq -r '(.user.permissions.maintain // false) or (.user.permissions.admin // false)' < "${PERM}")" >> "${GITHUB_ENV}"
 
 # Verify if fast forwarding is possible
 # Create a local branch reference for the PR
