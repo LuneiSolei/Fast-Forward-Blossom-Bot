@@ -2,10 +2,21 @@
 
 set -e
 
-# Build URL used to check for permissions
-COLLABORATORS_URL="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.collaborators_url)"
+REPO_OWNER="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.owner.login)"
 USERNAME="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .sender.login)"
-COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}/${USERNAME}"
+
+# Check if user is owner or has collaborator access
+if [[ "${REPO_OWNER}" == "${USERNAME}" ]]
+then
+  # User is the repository owner, they have permissions to push
+  HAS_PERMS=true
+else
+  # Build URL used to check for permissions
+  COLLABORATORS_URL="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.collaborators_url)"
+  COLLABORATORS_URL="${COLLABORATORS_URL}/${USERNAME}"
+fi
+
+
 
 # Fetch the user's permissions from GitHub API
 PERM=$(mktemp)
