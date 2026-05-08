@@ -17,6 +17,8 @@ then
   
       # Push the commit directly to the base branch.
       # This fast-forwards BASE_REF to point to HEAD_SHA
+      git config user.name "github-actions[bot]"
+      git config user.email "github-actions[bot]@users.noreply.github.com"
       git push origin "${HEAD_SHA}:${BASE_REF}"
     )
     printf "\`\`\`\n"
