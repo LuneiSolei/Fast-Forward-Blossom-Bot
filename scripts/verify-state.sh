@@ -2,6 +2,7 @@
 
 set -e
 
+HAS_PERMS=false
 REPO_OWNER="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.owner.login)"
 USERNAME="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .sender.login)"
 
@@ -13,7 +14,6 @@ then
 else
   # Build URL used to check for permissions
   COLLABORATORS_URL="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.collaborators_url)"
-  echo "Original collaborators URL: ${COLLABORATORS_URL}"
   COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}"
   COLLABORATORS_URL="${COLLABORATORS_URL%/}/$USERNAME"
 
@@ -36,6 +36,7 @@ git branch -f "pull_request/${HEAD_REF}" "${HEAD_SHA}"
 # Check if the base branch is a direct ancestor of the head branch
 IS_POSSIBLE=$(git merge-base --is-ancestor "${BASE_REF}" "${HEAD_SHA}" && echo true || echo false)
 printf "IS_POSSIBLE=%s\n" "${IS_POSSIBLE}" >> "${GITHUB_ENV}"
+printf "HAS_PERMS=%s\n" "${HAS_PERMS}" >> "${GITHUB_ENV}"
 
 printf "User has permission to push to target branch: %s\n" "${HAS_PERMS}" >> "${GITHUB_STEP_SUMMARY}"
 printf "Fast forwarding is possible: %s\n" "${IS_POSSIBLE}" >> "${GITHUB_STEP_SUMMARY}"
