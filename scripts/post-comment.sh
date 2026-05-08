@@ -29,7 +29,7 @@ COMMENT_POST=$(mktemp)
   printf "\`\`\`shell\n"
   git log --decorate=short -n 1 "${HEAD_SHA}"
   printf "\`\`\`\n"
-} 2>&1 | tee -a "${GITHUB_STEP_SUMMARY}"
+} 2>&1 | tee -a "${GITHUB_STEP_SUMMARY}" >> "${COMMENT_POST}"
 
 if [[ "${IS_POSSIBLE}" == "false" ]]
 then
