@@ -24,8 +24,8 @@ then
 fi
 
 echo "PUSH_LOG path ${PUSH_LOG}"
-echo "PUSH_LOG contents:"
-cat "${PUSH_LOG}"
+printf "PUSH_LOG contents: %s\n" "$(cat "${PUSH_LOG}")"
+
 
 # Write to GitHub output
 printf "PUSH_LOG=%s\n" "${PUSH_LOG}" >> "${GITHUB_ENV}"
