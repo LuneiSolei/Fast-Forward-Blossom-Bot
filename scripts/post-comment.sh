@@ -16,7 +16,7 @@ COMMENT_POST=$(mktemp)
       ;;
   esac
 
-  printf "fast forward \`%s\ (%s) to \%s\ (%s).\n\n" "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}"
+  printf "fast forward \`%s\` (%s) to \`%s\` (%s).\n\n" "${BASE_REF}" "${BASE_SHA}" "${HEAD_REF}" "${HEAD_SHA}"
 
   # Show the current state of the target branch
   printf "Target branch (\`%s\`):\n\n" "${BASE_REF}"
