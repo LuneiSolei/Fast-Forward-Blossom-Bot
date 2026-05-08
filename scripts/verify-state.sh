@@ -4,7 +4,8 @@ set -e
 
 # Build URL used to check for permissions
 COLLABORATORS_URL="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .repository.collaborators_url)"
-COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}"
+USERNAME="$("${GITHUB_ACTION_PATH}"/scripts/github-event.sh .sender.login)"
+COLLABORATORS_URL="${COLLABORATORS_URL/\{\/collaborator\}/}/${USERNAME}"
 
 # Fetch the user's permissions from GitHub API
 PERM=$(mktemp)
