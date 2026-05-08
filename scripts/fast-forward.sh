@@ -23,5 +23,9 @@ then
   } 2>&1 | tee -a "${GITHUB_STEP_SUMMARY}" | tee "${PUSH_LOG}"
 fi
 
+echo "PUSH_LOG path ${PUSH_LOG}"
+echo "PUSH_LOG contents:"
+cat ${PUSH_LOG}"
+
 # Write to GitHub output
 printf "PUSH_LOG=%s\n" "${PUSH_LOG}" >> "${GITHUB_ENV}"
