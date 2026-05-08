@@ -20,7 +20,7 @@ then
       git push origin "${HEAD_SHA}:${BASE_REF}"
     )
     printf "\`\`\`\n"
-  } 2>&1 | tee "${PUSH_LOG}"
+  } 2>&1 | tee -a "${GITHUB_STEP_SUMMARY}"
 fi
 
 # Write to GitHub output
