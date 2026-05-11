@@ -8,7 +8,7 @@
 set -euo pipefail
 
 # Script source location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+#SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Temporary output file, relative to script source
 mkdir -p "${1}/tmp"
@@ -22,14 +22,14 @@ declare -a UIDS=()
 current_fpr=""
 current_uid=""
 
-while IFS=: read -r type t1 t2 t3 t4 t5 t6 t7 t8 fpr_uid rest; do
+while IFS=: read -r type _ _ _ _ _ _ _ _ fpr_uid rest; do
     case "$type" in
         pub)
             # Start of a new key
             if [[ -n "$current_fpr" && "$current_uid" ]]; then
                 # Save what was collected from previous key
                 FINGERPRINTS+=("$current_fpr")
-                SHORT_IDS+=("${$current_fpr: -16}")
+                SHORT_IDS+=("$current_fpr: -16")
                 UIDS+=("$current_uid")
             fi
 
@@ -96,7 +96,7 @@ if [[ "$SELECTION" == "none" ]]; then
     rm -f "$OUTPUT_FILE"
     exit 0
 elif [[ "$SELECTION" == "all" ]]; then
-    KEYS_TO_EXPORT=(${FINGERPRINTS[@]})
+    KEYS_TO_EXPORT=("${FINGERPRINTS[@]}")
 else
     for token in $SELECTION; do
         if [[ "$token" =~ ^[0-9]+$ ]]; then

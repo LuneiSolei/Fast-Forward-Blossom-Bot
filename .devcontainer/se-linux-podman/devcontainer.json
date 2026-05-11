@@ -4,7 +4,7 @@
         "dockerfile": "Dockerfile"
     },
     "initializeCommand": "sh .devcontainer/se-linux-podman/export-gpg-keys.sh ${localWorkspaceFolder}",
-    "postCreateCommand": "sh .devcontainer/se-linux-podman/import-gpg-keys.sh ${localWorkspaceFolderBasename}",
+    "postCreateCommand": "sh .devcontainer/se-linux-podman/post-create-command.sh ${localWorkspaceFolderBasename}",
     "forwardPorts": [8080, 8443],
     "remoteUser": "node",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
