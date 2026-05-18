@@ -23,7 +23,7 @@ export default class Main
         this._octokit = await Authenticator.GetOctokit(this._repo.owner.login, this._repo.name);
 
         // Verify state
-        this._userHasPerms = State.GetUserHasPerms(this._repo, this._pr.user.login, this._octokit);
+        this._userHasPerms = await State.UserHasPerms(this._repo, this._pr.user.login, this._octokit);
     }
 }
 
