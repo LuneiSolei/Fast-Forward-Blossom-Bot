@@ -1,4 +1,4 @@
-import type {Repository} from "@octokit/webhooks-types";
+import type {PullRequest, Repository} from "@octokit/webhooks-types";
 import type {Octokit} from "@octokit/core";
 import * as core from "@actions/core"
 
@@ -10,6 +10,16 @@ interface CollabQuery {
     }
 }
 
+interface CompareQuery {
+    repository: {
+        ref: {
+            compare: {
+                status: string
+            }
+        }
+    }
+}
+
 export default class State
 {
     private static _userHasPerms: boolean;
@@ -17,9 +27,6 @@ export default class State
     public static async UserHasPerms(repo: Repository, username: string, octokit: Octokit)
     {
         if (this._userHasPerms) return this._userHasPerms;
-        core.info(repo.owner.login)
-        core.info(repo.name)
-        core.info(username)
         // Check if user is owner
         if (repo.owner.login == username) {
             this._userHasPerms = true;
@@ -35,9 +42,27 @@ export default class State
                 }
             `, {owner: repo.owner.login, repoName: repo.name, username});
 
-            core.info(res.repository.collaborators.totalCount.toString());
+            core.debug(res.repository.collaborators.totalCount.toString());
         }
 
         return this._userHasPerms;
+    }
+
+    public static async FastForwardIsPossible(octokit: Octokit, repo: Repository, pr: PullRequest): Promise<boolean> {
+        const res: CompareQuery = await octokit.graphql(`
+            query($owner: String!, $repoName: String!, $baseRef: String!, $headRef: String!) {
+                repository(owner: $owner, name: $repoName) {
+                    ref(qualifiedName: $baseRef) {
+                        compare(headRef: $headRef) {
+                            status
+                        }
+                    }
+                }
+            }
+        `, {owner: repo.owner.login, repoName: repo.name, baseRef: pr.base.ref, headRef: pr.head.sha});
+        const status: string = res.repository.ref.compare.status;
+
+        core.debug(`PR is ahead by: ${status}`);
+        return status === "AHEAD";
     }
 }

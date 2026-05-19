@@ -11,7 +11,8 @@ export default class Main
     private static _octokit: Octokit;
     private static _repo: Repository;
     private static _pr: PullRequest;
-    private static _userHasPerms: boolean;
+    private static _isPossible: boolean = false;
+    private static _userHasPerms: boolean = false;
 
     public static async run()
     {
@@ -24,6 +25,8 @@ export default class Main
 
         // Verify state
         this._userHasPerms = await State.UserHasPerms(this._repo, this._pr.user.login, this._octokit);
+        this._isPossible = await State.FastForwardIsPossible(this._octokit, this._repo, this._pr);
+
     }
 }
 

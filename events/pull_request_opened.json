@@ -40,9 +40,9 @@
     "comments_url": "https://api.github.com/repos/luneisolei/Fast-Forward-Blossom-Bot-Tests/issues/42/comments",
     "statuses_url": "https://api.github.com/repos/luneisolei/Fast-Forward-Blossom-Bot-Tests/statuses/sha",
     "head": {
-      "label": "luneisolei-testaccount:feature-branch",
-      "ref": "feature-branch",
-      "sha": "d3adb33f",
+      "label": "luneisolei-testaccount:test-branch",
+      "ref": "test-branch",
+      "sha": "ae8a643",
       "user": {
         "login": "luneisolei-testaccount",
         "id": 1,
@@ -70,9 +70,9 @@
       }
     },
     "base": {
-      "label": "luneisolei:main",
-      "ref": "main",
-      "sha": "c0ffeec0",
+      "label": "luneisolei:master",
+      "ref": "master",
+      "sha": "93e3db1",
       "user": {
         "login": "luneisolei",
         "id": 583231,
