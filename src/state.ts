@@ -1,6 +1,8 @@
 import type {PullRequest, Repository} from "@octokit/webhooks-types";
 import type {Octokit} from "@octokit/core";
 import * as core from "@actions/core"
+import type {Endpoints, OctokitResponse} from "@octokit/types";
+import type {ActionInfo} from "./actionInfo.js";
 
 interface CollabQuery {
     repository: {
@@ -20,19 +22,24 @@ interface CompareQuery {
     }
 }
 
+type CompareRequest = Endpoints["GET /repos/{owner}/{repo}/compare/{basehead}"]["response"];
+
 export default class State
 {
     private static _userHasPerms: boolean;
 
-    public static async UserHasPerms(repo: Repository, username: string, octokit: Octokit)
+    public static async UserHasPerms(info: ActionInfo): Promise<boolean>
     {
         if (this._userHasPerms) return this._userHasPerms;
+        const owner = info.repo.owner.login;
+        const user = info.pr.user.login;
+
         // Check if user is owner
-        if (repo.owner.login == username) {
+        if (owner == user) {
             this._userHasPerms = true;
         } else {
             // Check if user is a collaborator
-            const res: CollabQuery = await octokit.graphql(`
+            const res: CollabQuery = await info.octokit.graphql(`
                 query($owner: String!, $repoName: String!, $username: String!) {
                     repository(owner: $owner, name: $repoName) {
                         collaborators(login: $username) {
@@ -40,7 +47,7 @@ export default class State
                         }
                     }
                 }
-            `, {owner: repo.owner.login, repoName: repo.name, username});
+            `, {owner: owner, repoName: info.repo.name, username: user});
 
             core.debug(res.repository.collaborators.totalCount.toString());
         }
@@ -48,21 +55,22 @@ export default class State
         return this._userHasPerms;
     }
 
-    public static async FastForwardIsPossible(octokit: Octokit, repo: Repository, pr: PullRequest): Promise<boolean> {
-        const res: CompareQuery = await octokit.graphql(`
-            query($owner: String!, $repoName: String!, $baseRef: String!, $headRef: String!) {
-                repository(owner: $owner, name: $repoName) {
-                    ref(qualifiedName: $baseRef) {
-                        compare(headRef: $headRef) {
-                            status
-                        }
-                    }
-                }
-            }
-        `, {owner: repo.owner.login, repoName: repo.name, baseRef: pr.base.ref, headRef: pr.head.sha});
-        const status: string = res.repository.ref.compare.status;
+    public static async FastForwardIsPossible(info: ActionInfo): Promise<boolean> {
+        core.info("Determining if fast-forward is possible...")
+        const res: CompareRequest = await info.octokit.request("GET /repos/{owner}/{repo}/compare/{basehead}", {
+            owner: info.repo.owner.login,
+            repo: info.repo.name,
+            basehead: `${info.pr.base.sha}...${info.pr.head.label}`
+        });
 
-        core.debug(`PR is ahead by: ${status}`);
-        return status === "AHEAD";
+        const isPossible = res.data.status === "ahead";
+        switch (isPossible) {
+            case true:
+                core.info("Fast-forward is possible");
+                return true;
+            case false:
+                core.info("Fast-forward is not possible");
+                return false;
+        }
     }
 }

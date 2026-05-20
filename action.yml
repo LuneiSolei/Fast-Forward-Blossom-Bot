@@ -23,20 +23,9 @@ inputs:
             via the comment output variable and in the step's summary.
         default: "on-error"
 
-#outputs:
-#  comment:
-#    description: >
-#      A comment explaining whether fast forwarding is possible, and,
-#      if `merge` is true, whether it was successful. The comment is
-#      a JSON document with a single field called `body`.
-#    value: "${{ steps.fast-forward.outputs.comment }}"
-
 runs:
     using: node20
     main: dist/index.js
-    steps:
-
-
 
 #  steps:
 #    - id: prechecks

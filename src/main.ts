@@ -1,32 +1,39 @@
 import * as core from "@actions/core";
 import {run_prechecks} from "./prechecks.js";
-import {Octokit} from "@octokit/core";
 import Authenticator from "./authenticator.js";
 import EventParser from "./eventParser.js";
 import State from "./state.js";
 import type {PullRequest, Repository} from "@octokit/webhooks-types";
+import type {ActionInfo} from "./actionInfo.js";
+import Comment from "./comment.js";
 
 export default class Main
 {
-    private static _octokit: Octokit;
-    private static _repo: Repository;
-    private static _pr: PullRequest;
-    private static _isPossible: boolean = false;
-    private static _userHasPerms: boolean = false;
+    private static _comment: string[] = [];
 
     public static async run()
     {
+        let info: ActionInfo = {
+            octokit: undefined as any,
+            repo: EventParser.GetRepository(),
+            pr: EventParser.GetPullRequest(),
+            isPossible: false,
+            userHasPerms: false,
+        }
         run_prechecks();
 
         // Authenticate
-        this._repo = EventParser.GetRepository();
-        this._pr = EventParser.GetPullRequest();
-        this._octokit = await Authenticator.GetOctokit(this._repo.owner.login, this._repo.name);
+        info.octokit = await Authenticator.GetOctokit(info);
 
         // Verify state
-        this._userHasPerms = await State.UserHasPerms(this._repo, this._pr.user.login, this._octokit);
-        this._isPossible = await State.FastForwardIsPossible(this._octokit, this._repo, this._pr);
+        info.userHasPerms = await State.UserHasPerms(info);
+        info.isPossible = await State.FastForwardIsPossible(info);
 
+        await Comment.AddVerifyingLine(info.pr, this._comment);
+        await Comment.AddShellBlocks(info, this._comment);
+        await Comment.AddPerformingLine(info, this._comment);
+
+        this.Cleanup(info);
     }
 }
 

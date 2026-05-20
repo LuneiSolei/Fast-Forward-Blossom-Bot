@@ -2,11 +2,12 @@ import {Octokit} from "@octokit/core";
 import {createAppAuth} from "@octokit/auth-app";
 import * as core from "@actions/core";
 import * as fs from "node:fs";
+import type {ActionInfo} from "./actionInfo.js";
 
 export default class Authenticator {
     private static _octokit: Octokit;
 
-    public static async GetOctokit(owner: string, repo: string): Promise<Octokit>
+    public static async GetOctokit(info: ActionInfo): Promise<Octokit>
     {
         if (!this._octokit) {
             const APP_ID = process.env.APP_CLIENT_ID as string;
@@ -24,7 +25,7 @@ export default class Authenticator {
             // Find repo installation
             const { data: {id: installationId} } = await octokit.request(
                 "GET /repos/{owner}/{repo}/installation",
-                { owner, repo }
+                { owner: info.repo.owner.login, repo: info.repo.name }
             );
 
             // Exchange installation ID for installation token
