@@ -125,8 +125,8 @@ export default class Comment
 
             if (mergeParents === 0) {
                 // Merge base is a root (no parents). Exclude commits from before the merge base.
-                const out = await Git.Exec(["log", "--oneline", "--graph", "--decorate", info.pr.base.sha, info.pr.head.sha]);
-                comment.push(out);
+                // const out = await Git.Exec(["log", "--oneline", "--graph", "--decorate", info.pr.base.sha, info.pr.head.sha]);
+                // comment.push(out);
             }
         }
     }
