@@ -3,9 +3,10 @@ import {run_prechecks} from "./prechecks.js";
 import Authenticator from "./authenticator.js";
 import EventParser from "./eventParser.js";
 import State from "./state.js";
-import type {PullRequest, Repository} from "@octokit/webhooks-types";
 import type {ActionInfo} from "./actionInfo.js";
 import Comment from "./comment.js";
+import Git from "./git.js";
+import {execFile} from "node:child_process";
 
 export default class Main
 {
@@ -17,11 +18,12 @@ export default class Main
             octokit: undefined as any,
             repo: EventParser.GetRepository(),
             pr: EventParser.GetPullRequest(),
-            isPossible: false,
-            userHasPerms: false,
+            isPossible: null,
+            userHasPerms: null,
+            mergeBaseCommit: null
         }
         run_prechecks();
-
+        await Git.CloneRepo(info.repo);
         // Authenticate
         info.octokit = await Authenticator.GetOctokit(info);
 
@@ -33,11 +35,22 @@ export default class Main
         await Comment.AddShellBlocks(info, this._comment);
         await Comment.AddPerformingLine(info, this._comment);
 
+        core.info(this._comment.join("\n"));
+
         this.Cleanup(info);
+    }
+
+    private static Cleanup(info: ActionInfo) {
+        core.info("Performing Cleanup...");
+
+        const cwd = process.cwd();
+        const out = execFile("rm", ["-r", `./tmp/`], { cwd }, (error, stdout, stderr) => {
+            if (error) core.error(stderr);
+        });
     }
 }
 
 // Used implicitly via "@github/local-action"
-export function run() {
-    Main.run().catch(err => core.error(err));
+export async function run() {
+    await Main.run().catch(err => core.error(err));
 }

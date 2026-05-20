@@ -70,6 +70,7 @@ export default class State
                 return true;
             case false:
                 core.info("Fast-forward is not possible");
+                info.mergeBaseCommit = res.data.merge_base_commit;
                 return false;
         }
     }

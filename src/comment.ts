@@ -1,4 +1,4 @@
-import type {PullRequest, Repository} from "@octokit/webhooks-types";
+import type {PullRequest} from "@octokit/webhooks-types";
 import * as core from "@actions/core";
 import Git from "./git.js";
 import type {ActionInfo} from "./actionInfo.js";
@@ -84,50 +84,31 @@ export default class Comment
 
     public static async AddPerformingLine(info: ActionInfo, comment: string[]) : Promise<void> {
         // Should we fast-forward?
-        if (info.isPossible) {
+        if (!info.isPossible) {
             // Fast forwarding is impossible, determine why.
             comment.push(`Can't fast-forward ${this._baseFullRef} to ${this._headFullRef}. ${this._baseFullRef} is not 
             a direct ancestor of ${this._headFullRef}.`);
 
             // Show where the branches diverged
-            const res: AncestorQuery = await info.octokit.graphql(`
-                query($owner: String!, $repoName: String!, $baseRef: String!, $headSha: String!) {
-                    repository(owner: $owner, name: $repoName) {
-                        ref(qualifiedName: $baseRef) {
-                            compare(headRef: $headSha) {
-                                baseTarget {
-                                    ... on Commit {
-                                        oid
-                                        parents(first: 1) {
-                                            totalCount
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            `, { owner: info.repo.owner.login, repoName: info.repo.name, baseRef: info.pr.base.ref, headSha: info.pr.head.sha});
-            const baseTarget = res.repository.ref.compare.baseTarget;
-
-            if (baseTarget === null) {
-                // No ancestor
+            if (info.mergeBaseCommit === null) {
+                // No common ancestor
                 comment.push(`Branches do not appear to have a common ancestor.`);
                 return;
             }
 
-            // Found divergence point
-            const mergeParents = baseTarget.parents?.totalCount;
+            // Divergence point was found
             comment.push(
-                `Branches appear to have diverged at ${baseTarget.oid}.`,
+                `Branches appear to have diverged at ${info.mergeBaseCommit.sha}`,
                 `\`\`\`shell`
             );
 
-            if (mergeParents === 0) {
+            let exclude: string = "";
+            if (info.mergeBaseCommit.parents.length === 0) {
                 // Merge base is a root (no parents). Exclude commits from before the merge base.
-                // const out = await Git.Exec(["log", "--oneline", "--graph", "--decorate", info.pr.base.sha, info.pr.head.sha]);
-                // comment.push(out);
+                exclude = info.mergeBaseCommit.sha;
             }
+
+            comment.push(await Git.Log(exclude, info.pr.base.sha, info.pr.head.sha));
         }
     }
 
