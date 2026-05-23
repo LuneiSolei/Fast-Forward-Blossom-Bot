@@ -1,4 +1,4 @@
-export enum ValidEvent
+export enum ActionEventType
 {
     PullRequestOpened = "PullRequestOpened",
     IssueCommentCreated = "IssueCommentCreated",

@@ -1,4 +1,4 @@
-import {ValidEvent} from "./validEvent.js";
+import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import type {
     IssueCommentCreatedEvent,
     IssueCommentEditedEvent, IssueCommentEvent,
@@ -7,26 +7,28 @@ import type {
 import path from "path";
 import * as fs from "node:fs";
 import * as core from "@actions/core";
-import type {IApiCompareResponse} from "./IApiCompareResponse.js";
+import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
 import type {Octokit} from "@octokit/core";
-import type {IGraphQLCompareResponse} from "./IGraphQLCompareResponse.js";
-import Options from "./options.js";
-import type RepoInfo from "./repoInfo.js";
+import type {IGraphQLCompareResponse} from "../core/githubApi/IGraphQLCompareResponse.js";
+import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import type IOptions from "../core/actionInfo/IOptions.js";
+import type IEventInfo from "../core/actionInfo/IEventInfo.js";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 
-export default class EventInfo
+export default class EventInfo implements IEventInfo
 {
-    private readonly _eventActionMap: Map<string, { check: () => boolean, type: ValidEvent }> = new Map();
-    private readonly _event: PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent;
+    private readonly _eventActionMap: Map<string, { check: () => boolean, type: ActionEventType }> = new Map();
+    private readonly _event: ActionEvent;
+    private readonly _eventType!: ActionEventType;
     private _octokit?: Octokit = undefined;
-    private _options: Options;
-    private _eventType!: ValidEvent;
+    private _options: IOptions;
     private _commandInvoked?: boolean;
-    private _comment?: string
+    private _commentBody?: string
     private _isPossible?: boolean
     private _userHasPerms?: boolean
     private _shouldExit: boolean = false
 
-    public constructor(options: Options)
+    public constructor(options: IOptions)
     {
         this._options = options;
 
@@ -35,21 +37,21 @@ export default class EventInfo
         const event = JSON.parse(raw);
         this._eventActionMap.set(
             "opened",
-            {check: (): boolean => event.pull_request, type: ValidEvent.PullRequestOpened}
+            {check: (): boolean => event.pull_request, type: ActionEventType.PullRequestOpened}
         );
         this._eventActionMap.set(
             "created",
-            {check: (): boolean => event.comment, type: ValidEvent.IssueCommentCreated}
+            {check: (): boolean => event.comment, type: ActionEventType.IssueCommentCreated}
         );
         this._eventActionMap.set(
             "edited",
-            {check: (): boolean => event.comment, type: ValidEvent.IssueCommentEdited}
+            {check: (): boolean => event.comment, type: ActionEventType.IssueCommentEdited}
         )
 
         const config = this._eventActionMap.get(event.action);
         if (config?.check()) {
-            this.EventType = config.type;
-            this._event = event as PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent;
+            this._eventType = config.type;
+            this._event = event as ActionEvent;
 
             if (process.env.ACTIONS_STEP_DEBUG)
             {
@@ -68,39 +70,36 @@ export default class EventInfo
         process.exit(0);
     }
 
-    public get Event(): PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent
+    public get Event(): ActionEvent
     {
         return this._event;
     }
 
-    public get EventType(): ValidEvent {
+    public get EventType(): ActionEventType {
         return this._eventType;
-    }
-
-    public set EventType(value: ValidEvent)
-    {
-        this._eventType = value;
     }
 
     public get CommandInvoked(): boolean
     {
+        if (this.EventType !== ActionEventType.IssueCommentCreated && ActionEventType.IssueCommentEdited) return false;
+
         if (this._commandInvoked) return this._commandInvoked;
 
-        this._commandInvoked = (this.Comment.trim() === this._options.customCommand);
+        this._commandInvoked = (this.CommentBody.trim() === this._options.CustomCommand);
 
         return this._commandInvoked;
     }
 
-    public get Comment(): string
+    public get CommentBody(): string
     {
-        if (this._comment) return this._comment;
+        if (this._commentBody) return this._commentBody;
 
         const event = this._event as IssueCommentEvent;
 
         return event.comment.body;
     }
 
-    public IsPossible: (repo: RepoInfo) => Promise<boolean | undefined> = async (repo: RepoInfo) =>
+    public IsPossible: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
         if (this._isPossible) return this._isPossible;
 
@@ -115,7 +114,7 @@ export default class EventInfo
         return this._isPossible;
     }
 
-    public UserHasPerms: (repo: RepoInfo) => Promise<boolean> = async (repo: RepoInfo) =>
+    public UserHasPerms: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
         if (this._userHasPerms) return this._userHasPerms;
         if (repo.Owner === repo.User) {
@@ -152,10 +151,5 @@ export default class EventInfo
 
         core.setFailed("Attempted to access 'octokit' before initialization.");
         process.exit(1);
-    }
-
-    public set Octokit(value: Octokit)
-    {
-        this._octokit = value;
     }
 }

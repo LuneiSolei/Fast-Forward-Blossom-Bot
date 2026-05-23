@@ -3,12 +3,15 @@ import type {
     IssueCommentEditedEvent,
     PullRequestOpenedEvent
 } from "@octokit/webhooks-types";
-import {ValidEvent} from "./validEvent.js";
+import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import * as core from "@actions/core";
 import type {Octokit} from "@octokit/core";
-import type {IGraphQLPrResponse} from "./IGraphQLPrResponse.js";
+import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
+import type IPrInfo from "../core/actionInfo/IPrInfo.js";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
+import Git from "../core/git.js";
 
-export default class PrInfo
+export default class PrInfo implements IPrInfo
 {
     private _baseRef?: string;
     private _baseSha?: string;
@@ -16,12 +19,17 @@ export default class PrInfo
     private _headSha?: string;
     private _headLabel?: string;
     private _headOwner?: string;
+    private _headRepo?: string;
     private _nodeId?: string;
+    private _mergeBaseSha?: string;
+    private _mergeBaseParentsAmount?: number;
 
-    public constructor(event: PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent, eventType: ValidEvent)
+    public SetEvent(
+        event: ActionEvent,
+        eventType: ActionEventType): void
     {
         switch (eventType) {
-            case ValidEvent.PullRequestOpened:
+            case ActionEventType.PullRequestOpened:
                 event = event as PullRequestOpenedEvent;
                 this._baseRef = event.pull_request.base.ref;
                 this._baseSha = event.pull_request.base.sha;
@@ -30,9 +38,10 @@ export default class PrInfo
                 this._headLabel = event.pull_request.head.label;
                 this._nodeId = event.pull_request.node_id;
                 this._headOwner = event.pull_request.head.repo?.owner.login || event.repository.owner.login
+                this._headRepo = event.pull_request.head.repo?.name || event.repository.name;
 
                 break;
-            case ValidEvent.IssueCommentCreated || ValidEvent.IssueCommentEdited:
+            case ActionEventType.IssueCommentCreated || ActionEventType.IssueCommentEdited:
                 core.info("Pull request comment created/edited. Waiting for Octokit authorization...")
 
                 break;
@@ -44,20 +53,20 @@ export default class PrInfo
 
     public async FinishInitialization(
         octokit: Octokit,
-        event: PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent,
-        eventType: ValidEvent): Promise<void>
+        event: ActionEvent,
+        eventType: ActionEventType): Promise<void>
     {
         if (this._baseRef) return;
 
         switch (eventType)
         {
-            case ValidEvent.PullRequestOpened:
+            case ActionEventType.PullRequestOpened:
                 return;
-            case ValidEvent.IssueCommentCreated:
+            case ActionEventType.IssueCommentCreated:
                 event = event as IssueCommentCreatedEvent;
                 if (event.issue.pull_request === null || event.action !== "created") return;
 
-            case ValidEvent.IssueCommentEdited:
+            case ActionEventType.IssueCommentEdited:
                 event = event as IssueCommentEditedEvent;
                 if (event.issue.pull_request === null || event.action !== "edited") return;
             default:
@@ -72,6 +81,9 @@ export default class PrInfo
                                 baseRefOid
                                 headRefName
                                 headRefOid
+                                headRepository {
+                                    name
+                                }
                                 headRepositoryOwner {
                                     login
                                 }
@@ -89,9 +101,35 @@ export default class PrInfo
                 this._headOwner = pr.headRepositoryOwner.login;
                 this._headLabel = `${this._headOwner}/${pr.headRefName}`;
                 this._nodeId = pr.id;
+                this._headRepo = pr.headRepository.name;
 
                 break;
         }
+    }
+
+    private GetMergeBaseData(): { sha: string, amountOfParents: number }
+    {
+        // Get the merge base's sha
+        this._mergeBaseSha = Git.GetMergeBaseSha(this.BaseSha, this.HeadSha);
+
+        // Get the amount of parents from the sha
+        this._mergeBaseParentsAmount = Git.GetAmountOfParents(this._mergeBaseSha);
+
+        return { sha: this._mergeBaseSha, amountOfParents: this._mergeBaseParentsAmount };
+    }
+
+    public get MergeBaseSha(): string
+    {
+        if (this._mergeBaseSha) return this._mergeBaseSha;
+
+        return this.GetMergeBaseData().sha;
+    }
+
+    public get MergeBaseParentsAmount(): number
+    {
+        if (this._mergeBaseParentsAmount) return this._mergeBaseParentsAmount;
+
+        return this.GetMergeBaseData().amountOfParents;
     }
 
     public get BaseRef(): string {
@@ -141,6 +179,14 @@ export default class PrInfo
         if (this._headOwner) return this._headOwner;
 
         core.setFailed("Attempted to access 'HeadOwner' before finishing initialization.");
+        process.exit(1);
+    }
+
+    public get HeadRepo(): string
+    {
+        if (this._headRepo) return this._headRepo;
+
+        core.setFailed("Attempted to access 'HeadRepo' before finishing initialization.");
         process.exit(1);
     }
 }

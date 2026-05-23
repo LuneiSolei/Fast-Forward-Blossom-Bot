@@ -1,45 +1,24 @@
 import {exec} from "node:child_process";
 import * as core from "@actions/core";
 import type {Repository} from "@octokit/webhooks-types";
-import type RepoInfo from "./repoInfo.js";
+import type RepoInfo from "../implements/repoInfo.js";
 
 export default class Git
 {
-    public static async Exec(args: string[]): Promise<string>
+    public static Exec(args: string[]): string
     {
-        return new Promise((resolve, reject) => {
-            exec("git ".concat(args.join(' ')), (err, stdout, stderr) => {
-                if (err) return reject(stderr || err);
-                resolve(stdout);
-            });
-        });
+        return exec("git ".concat(args.join(' '))).stdout?.read();
     }
 
-    public static async CloneRepo(cloneUrl: string): Promise<string> {
+    public static CloneRepo(cloneUrl: string): void {
         core.info(`Cloning repo from ${cloneUrl}...`);
-
-        // Move to tmp directory
-        await new Promise((resolve, reject) => {
-            exec("mkdir -p ./tmp", (err, stdout, stderr) => {
-                if (err) return reject(stderr || err);
-                resolve(stdout);
-            });
-        });
-
-        // Clone repo
-        await this.Exec(["clone", cloneUrl, "./tmp/repo"]);
-
-        // Move into newly cloned repo
-        return new Promise((resolve, reject) => {
-            exec(`cd ./tmp/repo`, (err, stdout, stderr) => {
-                if (err) return reject(stderr || err);
-                resolve(stdout);
-            });
-        });
+        exec("rm-rf ./tmp/* && mkdir -p ./tmp");
+        this.Exec(["clone", cloneUrl, "./tmp/repo"]);
+        process.chdir(`./tmp/repo`);
     }
 
-    public static async Log(exclude: string, baseSha: string, headSha: string): Promise<string> {
-        return await this.Exec([
+    public static Log(exclude: string, baseSha: string, headSha: string): string {
+        return this.Exec([
             "log",
             "--pretty=oneline",
             "--graph",
@@ -47,5 +26,17 @@ export default class Git
             baseSha,
             headSha
         ]);
+    }
+
+    public static GetMergeBaseSha(baseSha: string, headSha: string): string    {
+        return this.Exec(["merge-base", baseSha, headSha]);
+    }
+
+    public static GetAmountOfParents(sha: string): number
+    {
+        const output = this.Exec(["git", "--parents", "-n 1", `${sha}`]);
+        const parts = output.split(' ');
+
+        return parts.length - 1; // First element is the commit itself
     }
 }

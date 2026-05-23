@@ -6,14 +6,14 @@ export default class Options {
         trimWhitespace: true
     };
 
-    public autoMerge: boolean;
-    public postComment: string;
-    public customCommand: string;
+    private readonly _autoMerge: boolean;
+    private readonly _postComment: string;
+    private readonly _customCommand: string;
 
     public constructor() {
-        this.autoMerge = core.getBooleanInput("auto_merge", Options._options);
-        this.customCommand = core.getInput("custom_command", Options._options);
-        this.postComment = Options.GetPostComment();
+        this._autoMerge = core.getBooleanInput("auto_merge", Options._options);
+        this._customCommand = core.getInput("custom_command", Options._options);
+        this._postComment = Options.GetPostComment();
 
         return this;
     }
@@ -30,5 +30,20 @@ export default class Options {
                 core.setFailed(`Invalid value '${comment}' for workflow input 'comment'`);
                 process.exit(1);
         }
+    }
+
+    public get AutoMerge(): boolean
+    {
+        return this._autoMerge;
+    }
+
+    public get CustomCommand(): string
+    {
+        return this._customCommand;
+    }
+
+    public get PostComment(): string
+    {
+        return this._postComment;
     }
 }

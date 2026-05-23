@@ -1,23 +1,24 @@
-import PrInfo from "./prInfo.js";
-import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
-import type {ValidEvent} from "./validEvent.js";
 import * as core from "@actions/core";
+import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import type IPrInfo from "../core/actionInfo/IPrInfo.js";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 
-export default class RepoInfo
+export default class RepoInfo implements IRepoInfo
 {
     private readonly _name: string;
-    private _mergeBase?: string;
-    private readonly _pr: PrInfo
+    private readonly _pr: IPrInfo
     private readonly _user: string;
     private readonly _owner: string;
     private readonly _cloneUrl: string;
 
-    public constructor(event: PullRequestOpenedEvent | IssueCommentCreatedEvent | IssueCommentEditedEvent, eventType: ValidEvent)
+    public constructor(
+        prInfo: IPrInfo,
+        event: ActionEvent)
     {
         this._owner = event.repository.owner.login;
         this._name = event.repository.name;
         this._user = event.sender.login;
-        this._pr = new PrInfo(event, eventType);
+        this._pr = prInfo;
         this._cloneUrl = event.repository.clone_url;
 
         return this;
@@ -38,16 +39,8 @@ export default class RepoInfo
         return this._user;
     }
 
-    public get Pr(): PrInfo {
+    public get Pr(): IPrInfo {
         return this._pr;
-    }
-
-    public get MergeBase(): string | null
-    {
-        if (this._mergeBase) return this._mergeBase;
-
-        core.setFailed("Attempted to access uninitialized 'RepoInfo.MergeBase'.");
-        process.exit(1);
     }
 
     public get CloneUrl(): string

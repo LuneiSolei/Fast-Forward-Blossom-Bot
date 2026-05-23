@@ -1,9 +1,13 @@
 import * as core from "@actions/core";
 import ActionInfo from "../implements/actionInfo.js";
-import Comment from "../implements/comment.js";
+import CommentFormatter from "../implements/commentFormatter.js";
 import Git from "../core/git.js";
-import {execFile} from "node:child_process";
-import {ValidEvent} from "../core/validEvent.js";
+import {exec, execFile} from "node:child_process";
+import {ActionEventType} from "../core/actionEvent/actionEventType.js";
+import PrInfo from "../implements/prInfo.js";
+import Options from "../implements/options.js";
+import EventInfo from "../implements/eventInfo.js";
+import RepoInfo from "../implements/repoInfo.js";
 
 export default class Main
 {
@@ -17,8 +21,12 @@ export default class Main
             process.exit(1);
         }
 
-        let comment: string[] = [];
-        let info: ActionInfo = new ActionInfo();
+        let info: ActionInfo = await ActionInfo.Create(
+            PrInfo,
+            Options,
+            EventInfo,
+            RepoInfo
+        )
 
         // Was custom command invoked?
         if (info.Event.CommandInvoked)
@@ -28,42 +36,42 @@ export default class Main
         }
 
         // Clone the repo locally
-        await Git.CloneRepo(info.Repo.CloneUrl);
+        Git.CloneRepo(info.Repo.CloneUrl);
 
         // Verify state
         // TODO: rewrite comment formatting code
-        comment.push(Comment.AddVerifyingLine(info.pr));
-        comment.concat(await Comment.AddShellBlocks(info));
+        const commentFormatter = new CommentFormatter(info.Repo.Pr);
+
+        commentFormatter.AddVerifyingLine();
+        await commentFormatter.AddShellBlocks(info.Octokit, info.Repo);
 
         if (!info.Event.IsPossible)
         {
             // Fast-forward is not possible
-            comment.concat(await Comment.AddNotPossibleLines(info));
+            commentFormatter.AddNotPossibleLines(info.Repo.Pr);
             info.Event.ShouldExit = true;
         }
         else if (!core.getBooleanInput("auto_merge"))
         {
             // Fast-forward is possible, but auto_merge is disabled
-            comment.push(Comment.AddAutoMergeDisabledLine());
+            commentFormatter.AddAutoMergeDisabledLine();
             info.Event.ShouldExit = true;
         }
         else if (!info.Event.UserHasPerms)
         {
             // User does not have proper permission(s)
-            comment.push(Comment.AddNoPermsLine(info));
+            commentFormatter.AddNoPermsLine(info.Repo);
             info.Event.ShouldExit = true;
         }
-        else if (!info.Event.CommandInvoked && info.Event.EventType === ValidEvent.PullRequestOpened) {
+        else if (!info.Event.CommandInvoked && info.Event.EventType === ActionEventType.PullRequestOpened) {
             // This is a pull request opened event, but the command was not invoked.
-            comment.push(Comment.AddCommandNotInvokedLine());
+            commentFormatter.AddCommandNotInvokedLine();
             info.Event.ShouldExit = true;
         }
 
-        if (core.getBooleanInput("post_comment")) {
-            Comment.PostComment(info, comment).then(r => {return} );
+        if (core.getInput("post_comment") == "always" || "on-error") {
+            await commentFormatter.PostComment(info.Octokit, info.Repo.Pr.NodeId);
         }
-
-        core.info(comment.join("\n"));
 
         this.Cleanup();
     }

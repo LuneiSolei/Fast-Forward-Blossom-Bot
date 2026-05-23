@@ -1,32 +1,49 @@
 import {Octokit} from "@octokit/core";
-import Options from "../core/options.js";
-import RepoInfo from "../core/repoInfo.js";
-import EventInfo from "../core/eventInfo.js";
 import * as core from "@actions/core";
 import * as fs from "node:fs";
 import {createAppAuth} from "@octokit/auth-app";
+import type IPrInfo from "../core/actionInfo/IPrInfo.js";
+import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import type IOptions from "../core/actionInfo/IOptions.js";
+import type IEventInfo from "../core/actionInfo/IEventInfo.js";
+import type IActionInfo from "../core/actionInfo/IActionInfo.js";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 
-export default class ActionInfo
+export default class ActionInfo implements IActionInfo
 {
     private readonly _octokit: Octokit;
-    private readonly _repo: RepoInfo;
-    private readonly _options: Options;
-    private readonly _event: EventInfo;
+    private readonly _repo: IRepoInfo;
+    private readonly _options: IOptions;
+    private readonly _event: IEventInfo;
 
-    public constructor()
+    private constructor(
+        octokit: Octokit,
+        prInfo: new () => IPrInfo,
+        options: new () => IOptions,
+        eventInfo: new (options: IOptions) => IEventInfo,
+        repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo)
     {
-        this._options = new Options();
+        core.debug("Retrieving options...");
+        this._options = new options;
 
         // Get basic info first
-        this._event = new EventInfo(this._options);
-        this._repo = new RepoInfo(
-            this._event.Event,
-            this._event.EventType
-        );
-        this._event.Repo = this._repo;
+        core.debug("Retrieving basic event info...");
+        this._event = new eventInfo(this._options);
+        core.debug("Done!");
+
+        core.debug("Retrieving basic pull request info...");
+        const newPrInfo = new prInfo();
+        newPrInfo.SetEvent(this._event.Event, this._event.EventType);
+        core.debug("Done!");
+
+        core.debug("Retrieving basic repository info...");
+        this._repo = new repoInfo(newPrInfo, this._event.Event);
+        core.debug("Done!");
 
         // Authenticate
-        this._octokit = this.CreateOctokit();
+        core.debug("Authenticating octokit instance...");
+        this._octokit = octokit
+        core.debug("Done!");
 
         // Get any authentication required info
         this._repo.Pr.FinishInitialization(this._octokit, this._event.Event, this._event.EventType)
@@ -35,7 +52,31 @@ export default class ActionInfo
         return this;
     }
 
-    private CreateOctokit(): Octokit
+    public static async Create(
+        prInfo: new () => IPrInfo,
+        options: new () => IOptions,
+        eventInfo: new (options: IOptions) => IEventInfo,
+        repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo,
+    ): Promise<ActionInfo>
+    {
+        core.debug("Constructing new ActionInfo instance...");
+
+        // Create temporary instances to get repo info for authentication
+        const tempOptions = new options();
+        const tempEvent = new eventInfo(tempOptions);
+        const tempPrInfo = new prInfo();
+        tempPrInfo.SetEvent(tempEvent.Event, tempEvent.EventType);
+        const tempRepo = new repoInfo(tempPrInfo, tempEvent.Event);
+
+        // Authenticate
+        const octokit = await ActionInfo.CreateOctokit(tempRepo.Owner, tempRepo.Name);
+        const actionInfo = new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
+
+        core.debug("Done!");
+        return actionInfo;
+    }
+
+    private static async CreateOctokit(owner: string, repoName: string): Promise<Octokit>
     {
         const APP_ID = process.env.APP_CLIENT_ID as string;
         const PRIVATE_KEY = fs.readFileSync(process.env.APP_PRIVATE_KEY_PATH as string, "utf8");
@@ -50,25 +91,24 @@ export default class ActionInfo
         });
 
         // Find repo installation
-        octokit.request(
+        const res = await octokit.request(
             "GET /repos/{owner}/{repo}/installation",
-            { owner: this._repo.Owner, repo: this._repo.Name }
-        ).then(res => {
-            // Exchange installation ID for installation token
-            const appAuth = createAppAuth({
-                appId: APP_ID,
-                privateKey: PRIVATE_KEY,
-                installationId: res.data.id
-            });
-            appAuth({type: "installation"}).then(res => {
-                if (!res.token) core.error("Failed to obtain installation token.");
+            { owner, repo: repoName }
+        );
 
-                // Authenticate as app
-                octokit = new Octokit({ auth: res.token });
-                return this._octokit;
-            });
+        // Exchange installation ID for installation token
+        const appAuth = createAppAuth({
+            appId: APP_ID,
+            privateKey: PRIVATE_KEY,
+            installationId: res.data.id
         });
+        const authRes = await appAuth({type: "installation"})
+        if (!authRes.token) core.error("Failed to obtain installation token.");
 
+        // Authenticate as app
+        octokit = new Octokit({ auth: authRes.token });
+
+        core.debug("Done!");
         return octokit;
     }
 
@@ -76,15 +116,15 @@ export default class ActionInfo
         return this._octokit;
     }
 
-    public get Repo(): RepoInfo {
+    public get Repo(): IRepoInfo {
         return this._repo;
     }
 
-    public get Options(): Options {
+    public get Options(): IOptions {
         return this._options;
     }
 
-    public get Event(): EventInfo {
+    public get Event(): IEventInfo {
         return this._event;
     }
 }

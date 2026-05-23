@@ -1,8 +1,8 @@
-import type {PullRequest} from "@octokit/webhooks-types";
 import * as core from "@actions/core";
 import Git from "../core/git.js";
-import ActionInfo from "./actionInfo.js";
 import type {Octokit} from "@octokit/core";
+import type IPrInfo from "../core/actionInfo/IPrInfo.js";
+import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 
 interface Commit {
     repository: {
@@ -24,64 +24,57 @@ interface Commit {
     }
 }
 
-interface AncestorQuery {
-    repository: {
-        ref: {
-            compare: {
-                baseTarget: {
-                    oid: string;
-                    parents: {
-                        totalCount: number;
-                    }
-                } | null;
-            }
-        }
-    }
-}
-
-export default class Comment
+export default class CommentFormatter
 {
-    private static _baseFullRef: string;
-    private static _headFullRef: string;
+    private readonly _baseFullRef: string;
+    private readonly _headFullRef: string;
+    private _comment: string[] = [];
 
-    public static AddVerifyingLine(pr: PullRequest): string
+    public constructor(prInfo: IPrInfo)
     {
-        this._baseFullRef = `${pr.base.ref} (${pr.base.sha})`;
-        this._headFullRef = `${pr.head.ref} (${pr.head.sha})`;
+        this._baseFullRef = `${prInfo.BaseRef} (${prInfo.BaseSha})`
+        this._headFullRef = `${prInfo.HeadRef} (${prInfo.HeadRef})`
+    }
 
-        let tmpStr: string;
+    public AddVerifyingLine(): void
+    {
+        let result: string;
         switch (core.getBooleanInput("auto_merge")) {
             case true:
-                tmpStr = `Auto merge enabled. Verifying and then attempting to `;
+                result = `Auto merge enabled. Verifying and then attempting to `;
                 break;
             case false:
-                tmpStr = `Auto merge disabled. Verifying we can `
+                result = `Auto merge disabled. Verifying we can `
         }
 
-        return tmpStr.concat(`fast-forward ${this._baseFullRef} to ${this._headFullRef}.`);
+        // Push the result to our stored comment
+        result = result.concat(`fast-forward ${this._baseFullRef} to ${this._headFullRef}.`);
+        this._comment.push(result);
     }
 
-    public static async AddShellBlocks(info: ActionInfo): Promise<string[]>
+    public async AddShellBlocks(octokit: Octokit, repo: IRepoInfo): Promise<void>
     {
         let result: string[] = []
+
         // Create the target shell block
-        result.push(`Target Branch (${info.Repo.Pr.BaseRef}):`);
-        let owner = info.Repo.Owner;
-        let repoName = info.Repo.Name;
-        let sha = info.Repo.Pr.BaseSha;
-        result.concat(await this.createBlock(info.Octokit, owner, repoName, sha));
+        result.push(`Target Branch (${repo.Pr.BaseRef}):`);
+        let owner = repo.Owner;
+        let repoName = repo.Name;
+        let sha = repo.Pr.BaseSha;
+        result.concat(await this.createBlock(octokit, owner, repoName, sha));
 
         // Create the PR shell block
-        result.push(`Pull Request (${info.Repo.Pr.HeadRef}):`);
-        owner = info.Repo.Pr.HeadOwner || owner;
-        repoName = info.pr.head.repo?.name || repoName;
-        sha = info.pr.head.sha
-        result.concat(await this.createBlock(info.Octokit, owner, repoName, sha));
+        result.push(`Pull Request (${repo.Pr.HeadRef}):`);
+        owner = repo.Pr.HeadOwner || owner;
+        repoName = repo.Pr.HeadRepo || repoName;
+        sha = repo.Pr.HeadSha;
+        result.concat(await this.createBlock(octokit, owner, repoName, sha));
 
-        return result;
+        // Push the result to our stored comment
+        this._comment.concat(result)
     }
 
-    public static async AddNotPossibleLines(info: ActionInfo): Promise<string[]>
+    public AddNotPossibleLines(pr: IPrInfo): string[]
     {
         let result: string[] = [];
 
@@ -90,7 +83,7 @@ export default class Comment
         a direct ancestor of ${this._headFullRef}.`);
 
         // Show where the branches diverged
-        if (info.mergeBaseCommit === null) {
+        if (pr.MergeBaseSha === null) {
             // No common ancestor
             result.push(`Branches do not appear to have a common ancestor.`);
             return result;
@@ -98,47 +91,47 @@ export default class Comment
 
         // Divergence point was found
         result.push(
-            `Branches appear to have diverged at ${info.mergeBaseCommit.sha}`,
+            `Branches appear to have diverged at ${pr.MergeBaseSha}.`,
             `\`\`\`shell`
         );
 
         let exclude: string = "";
-        if (info.mergeBaseCommit.parents.length === 0) {
+        if (pr.MergeBaseParentsAmount === 0) {
             // Merge base is a root (no parents). Exclude commits from before the merge base.
-            exclude = info.mergeBaseCommit.sha;
+            exclude = pr.MergeBaseSha;
         }
 
         result.push(
-            await Git.Log(exclude, info.pr.base.sha, info.pr.head.sha),
-            `Rebase ${info.pr.head.ref} onto ${info.pr.base.ref} and then force push to ${info.pr.head.ref}`
+            Git.Log(exclude, pr.BaseSha, pr.HeadSha),
+            `Rebase ${pr.HeadRef} onto ${pr.BaseRef} and then force push to ${pr.HeadRef}`
         );
 
         return result;
     }
 
-    public static AddAutoMergeDisabledLine(): string
+    public AddAutoMergeDisabledLine(): string
     {
         return `It is possible to fast-forward ${this._baseFullRef} to ${this._headFullRef}, 
             but 'auto_merge' has been disabled.`
     }
 
-    public static AddNoPermsLine(info: ActionInfo): string
+    public AddNoPermsLine(repo: IRepoInfo): string
     {
         // Zero width character is added to avoid pinging the user
-        return `Sorry, @\u200B'${info.user.name}, it is possible to fast-forward ${this._baseFullRef} to 
+        return `Sorry, @\u200B'${repo.User}, it is possible to fast-forward ${this._baseFullRef} to 
             ${this._headFullRef}, but you do not appear to have permission to push to this repository.`;
     }
 
-    public static AddCommandNotInvokedLine(): string
+    public AddCommandNotInvokedLine(): string
     {
         return `It is possible to fast-forward ${this._baseFullRef} to ${this._headFullRef}. If you have write access 
             to the target repository, you can add the comment \`${core.getInput("command")}\` to initiate the fast-forward.`;
     }
 
-    public static async PostComment(info: ActionInfo, comment: string[]): Promise<void>
+    public async PostComment(octokit: Octokit, nodeId: string): Promise<void>
     {
         // Construct JSON comment
-        await info.octokit.graphql(`
+        await octokit.graphql(`
             mutation AddComment($input: AddCommentInput!) {
                 addComment(input: $input) {
                     clientMutationId
@@ -146,13 +139,13 @@ export default class Comment
             }
         `, {
             input: {
-                body: comment.join("\n"),
-                clientMutationId: info.pr.node_id
+                body: this._comment.join("\n"),
+                clientMutationId: nodeId
             }
         });
     }
 
-    private static async createBlock(octokit: Octokit, owner: string, repoName: string, sha: string): Promise<string[]> {
+    private async createBlock(octokit: Octokit, owner: string, repoName: string, sha: string): Promise<string[]> {
         // Get commit info
         core.debug(`Querying ${owner}/${repoName} (${sha})`);
 

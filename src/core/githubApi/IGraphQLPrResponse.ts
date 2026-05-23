@@ -5,6 +5,9 @@ export type IGraphQLPrResponse = {
             baseRefOid: string,
             headRefName: string,
             headRefOid: string,
+            headRepository: {
+                name: string
+            }
             headRepositoryOwner: {
                 login: string
             },
