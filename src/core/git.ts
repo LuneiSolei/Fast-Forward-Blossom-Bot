@@ -1,6 +1,7 @@
 import {exec} from "node:child_process";
 import * as core from "@actions/core";
 import type {Repository} from "@octokit/webhooks-types";
+import type RepoInfo from "./repoInfo.js";
 
 export default class Git
 {
@@ -14,8 +15,8 @@ export default class Git
         });
     }
 
-    public static async CloneRepo(repo: Repository): Promise<string> {
-        core.info(`Cloning repo from ${repo.clone_url}...`);
+    public static async CloneRepo(cloneUrl: string): Promise<string> {
+        core.info(`Cloning repo from ${cloneUrl}...`);
 
         // Move to tmp directory
         await new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ export default class Git
         });
 
         // Clone repo
-        await this.Exec(["clone", repo.clone_url, "./tmp/repo"]);
+        await this.Exec(["clone", cloneUrl, "./tmp/repo"]);
 
         // Move into newly cloned repo
         return new Promise((resolve, reject) => {
@@ -35,8 +36,6 @@ export default class Git
                 resolve(stdout);
             });
         });
-
-
     }
 
     public static async Log(exclude: string, baseSha: string, headSha: string): Promise<string> {
