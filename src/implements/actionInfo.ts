@@ -78,8 +78,8 @@ export default class ActionInfo implements IActionInfo
 
     private static async CreateOctokit(owner: string, repoName: string): Promise<Octokit>
     {
-        const APP_ID = process.env.APP_CLIENT_ID as string;
-        const PRIVATE_KEY = fs.readFileSync(process.env.APP_PRIVATE_KEY_PATH as string, "utf8");
+        const APP_ID = process.env["APP_CLIENT_ID"] as string;
+        const PRIVATE_KEY = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"] as string, "utf8");
 
         // Create Octokit JWT
         let octokit = new Octokit({

@@ -1,7 +1,5 @@
 import {exec} from "node:child_process";
 import * as core from "@actions/core";
-import type {Repository} from "@octokit/webhooks-types";
-import type RepoInfo from "../implements/repoInfo.js";
 
 export default class Git
 {

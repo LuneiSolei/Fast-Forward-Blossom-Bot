@@ -1,9 +1,4 @@
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
-import type {
-    IssueCommentCreatedEvent,
-    IssueCommentEditedEvent, IssueCommentEvent,
-    PullRequestOpenedEvent
-} from "@octokit/webhooks-types";
 import path from "path";
 import * as fs from "node:fs";
 import * as core from "@actions/core";
@@ -14,6 +9,7 @@ import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IOptions from "../core/actionInfo/IOptions.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
+import type {IssueCommentEvent} from "@octokit/webhooks-types";
 
 export default class EventInfo implements IEventInfo
 {
@@ -32,7 +28,7 @@ export default class EventInfo implements IEventInfo
     {
         this._options = options;
 
-        const eventPath: string = process.env.GITHUB_EVENT_PATH as string;
+        const eventPath: string = process.env["GITHUB_EVENT_PATH"] as string;
         const raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
         const event = JSON.parse(raw);
         this._eventActionMap.set(
@@ -53,7 +49,7 @@ export default class EventInfo implements IEventInfo
             this._eventType = config.type;
             this._event = event as ActionEvent;
 
-            if (process.env.ACTIONS_STEP_DEBUG)
+            if (process.env["ACTIONS_STEP_DEBUG"])
             {
                 core.debug(`Received '${this.EventType.toString()}Event: ${JSON.stringify(event, null, 2)}`);
             }
@@ -62,7 +58,7 @@ export default class EventInfo implements IEventInfo
         }
 
         // Invalid event
-        if (process.env.ACTIONS_STEP_DEBUG)
+        if (process.env["ACTIONS_STEP_DEBUG"])
         {
             core.debug(`Received invalid event: ${JSON.stringify(event, null, 2)}`);
         }

@@ -17,15 +17,18 @@
     "scripts": {
         "generate-app-token": "local-action . dist/local/generate-installation-token.js .env",
         "local-action": "local-action . dist/src/interface/main.js .env",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest"
     },
     "devDependencies": {
         "@github/local-action": "^7.0.1",
+        "@jest/globals": "^30.4.1",
         "@octokit/app": "^16.1.2",
         "@types/js-yaml": "^4.0.9",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^25.7.0",
+        "jest": "^30.4.2",
         "jsonwebtoken": "^9.0.3",
+        "ts-jest": "^29.4.11",
         "typedoc": "^0.28.19"
     },
     "dependencies": {

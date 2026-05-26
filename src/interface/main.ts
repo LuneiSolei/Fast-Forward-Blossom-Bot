@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import ActionInfo from "../implements/actionInfo.js";
 import CommentFormatter from "../implements/commentFormatter.js";
 import Git from "../core/git.js";
-import {exec, execFile} from "node:child_process";
+import {execFile} from "node:child_process";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import PrInfo from "../implements/prInfo.js";
 import Options from "../implements/options.js";
@@ -14,7 +14,7 @@ export default class Main
     public static async run()
     {
         // Ensure we're running via GitHub Actions
-        if (!process.env.GITHUB_EVENT_PATH)
+        if (!process.env["GITHUB_EVENT_PATH"])
         {
             core.setFailed("GITHUB_EVENT_PATH environment variable not set. This script is intended to be run within a "
                 + "GitHub Actions workflow.");
@@ -80,7 +80,7 @@ export default class Main
         core.info("Performing Cleanup...");
 
         const cwd = process.cwd();
-        const out = execFile("rm", ["-r", `./tmp/`], { cwd }, (error, stdout, stderr) => {
+        execFile("rm", ["-r", `./tmp/`], { cwd }, (error, _, stderr) => {
             if (error) core.error(stderr);
         });
     }
