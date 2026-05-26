@@ -17,7 +17,7 @@
     "scripts": {
         "generate-app-token": "local-action . dist/local/generate-installation-token.js .env",
         "local-action": "local-action . dist/src/interface/main.js .env",
-        "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest"
+        "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest --coverage"
     },
     "devDependencies": {
         "@github/local-action": "^7.0.1",
