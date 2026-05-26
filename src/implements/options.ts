@@ -28,7 +28,7 @@ export default class Options {
                 return comment;
             default:
                 core.setFailed(`Invalid value '${comment}' for workflow input 'comment'`);
-                process.exit(1);
+                throw new TypeError();
         }
     }
 

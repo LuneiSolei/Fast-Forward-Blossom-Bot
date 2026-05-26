@@ -10,6 +10,7 @@ import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
+import {Logger} from "../core/Logger.js";
 
 export default class PrInfo implements IPrInfo
 {
@@ -41,13 +42,17 @@ export default class PrInfo implements IPrInfo
                 this._headRepo = event.pull_request.head.repo?.name || event.repository.name;
 
                 break;
-            case ActionEventType.IssueCommentCreated || ActionEventType.IssueCommentEdited:
+            case ActionEventType.IssueCommentCreated:
+                core.info("Pull request comment created/edited. Waiting for Octokit authorization...")
+
+                break;
+            case ActionEventType.IssueCommentEdited:
                 core.info("Pull request comment created/edited. Waiting for Octokit authorization...")
 
                 break;
             default:
                 core.setFailed(`Pull request could not be found on event '${event}'`);
-                process.exit(1);
+                Logger.ReferenceError("test");
         }
     }
 
@@ -133,58 +138,50 @@ export default class PrInfo implements IPrInfo
     public get BaseRef(): string {
         if (this._baseRef) return this._baseRef;
 
-        core.setFailed("Attempted to access 'BaseRef' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'BaseRef' before finishing initialization.", 1);
     }
 
     public get BaseSha(): string {
         if (this._baseSha) return this._baseSha;
 
-        core.setFailed("Attempted to access 'BaseSha' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'BaseSha' before finishing initialization.");
     }
 
     public get HeadRef(): string {
         if (this._headRef) return this._headRef;
 
-        core.setFailed("Attempted to access 'HeadRef' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'HeadRef' before finishing initialization.");
     }
 
     public get HeadSha(): string {
         if (this._headSha) return this._headSha;
 
-        core.setFailed("Attempted to access 'HeadSha' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'HeadSha' before finishing initialization.");
     }
 
     public get HeadLabel(): string {
         if (this._headLabel) return this._headLabel;
 
-        core.setFailed("Attempted to access 'HeadLabel' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'HeadLabel' before finishing initialization.");
     }
 
     public get NodeId(): string {
         if (this._nodeId) return this._nodeId;
 
-        core.setFailed("Attempted to access 'NodeId' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'NodeId' before finishing initialization.");
     }
 
     public get HeadOwner(): string
     {
         if (this._headOwner) return this._headOwner;
 
-        core.setFailed("Attempted to access 'HeadOwner' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'HeadOwner' before finishing initialization.");
     }
 
     public get HeadRepo(): string
     {
         if (this._headRepo) return this._headRepo;
 
-        core.setFailed("Attempted to access 'HeadRepo' before finishing initialization.");
-        process.exit(1);
+        Logger.ReferenceError("Attempted to access 'HeadRepo' before finishing initialization.");
     }
 }
