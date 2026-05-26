@@ -32,7 +32,9 @@ export default class Git
 
     public static GetAmountOfParents(sha: string): number
     {
-        const output = this.Exec(["git", "--parents", "-n 1", `${sha}`]);
+        const output = this.Exec(["log", "--parents", "-n 1", `${sha}`]);
+        if (!output) return 0;
+
         const parts = output.split(' ');
 
         return parts.length - 1; // First element is the commit itself

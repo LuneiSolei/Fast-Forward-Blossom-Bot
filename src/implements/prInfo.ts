@@ -64,47 +64,45 @@ export default class PrInfo implements IPrInfo
                 return;
             case ActionEventType.IssueCommentCreated:
                 event = event as IssueCommentCreatedEvent;
-                if (event.issue.pull_request === null || event.action !== "created") return;
-
-            case ActionEventType.IssueCommentEdited:
-                event = event as IssueCommentEditedEvent;
-                if (event.issue.pull_request === null || event.action !== "edited") return;
-            default:
-                // Retrieve the pull request info via api call
-                // @ts-ignore
-                const number: number = event.issue.number
-                const res: IGraphQLPrResponse = await octokit.graphql(`
-                    query($owner: String!, $repoName: String!, $number: Int!) {
-                        repository(owner: $owner, name: $repoName) {
-                            pullRequest(number: $number) {
-                                baseRefName
-                                baseRefOid
-                                headRefName
-                                headRefOid
-                                headRepository {
-                                    name
-                                }
-                                headRepositoryOwner {
-                                    login
-                                }
-                                id
-                            }
-                        }
-                    }
-                `, { owner: event.repository.owner.login, repoName: event.repository.name, number });
-
-                const pr = res.repository.pullRequest;
-                this._baseRef = pr.baseRefName;
-                this._baseSha = pr.baseRefOid;
-                this._headRef = pr.headRefName;
-                this._headSha = pr.headRefOid;
-                this._headOwner = pr.headRepositoryOwner.login;
-                this._headLabel = `${this._headOwner}/${pr.headRefName}`;
-                this._nodeId = pr.id;
-                this._headRepo = pr.headRepository.name;
+                if (!event.issue.pull_request || event.action !== "created") return;
 
                 break;
+            case ActionEventType.IssueCommentEdited:
+                event = event as IssueCommentEditedEvent;
+                if (!event.issue.pull_request || event.action !== "edited") return;
         }
+
+        // Retrieve the pull request info via api call
+        const number: number = event.issue.number
+        const res: IGraphQLPrResponse = await octokit.graphql(`
+            query($owner: String!, $repoName: String!, $number: Int!) {
+                repository(owner: $owner, name: $repoName) {
+                    pullRequest(number: $number) {
+                        baseRefName
+                        baseRefOid
+                        headRefName
+                        headRefOid
+                        headRepository {
+                            name
+                        }
+                        headRepositoryOwner {
+                            login
+                        }
+                        id
+                    }
+                }
+            }
+        `, { owner: event.repository.owner.login, repoName: event.repository.name, number });
+
+        const pr = res.repository.pullRequest;
+        this._baseRef = pr.baseRefName;
+        this._baseSha = pr.baseRefOid;
+        this._headRef = pr.headRefName;
+        this._headSha = pr.headRefOid;
+        this._headOwner = pr.headRepositoryOwner.login;
+        this._headLabel = `${this._headOwner}/${pr.headRefName}`;
+        this._nodeId = pr.id;
+        this._headRepo = pr.headRepository.name;
     }
 
     private GetMergeBaseData(): { sha: string, amountOfParents: number }
