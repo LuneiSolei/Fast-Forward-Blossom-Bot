@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
+import type IOptions from "../core/actionInfo/IOptions.js";
 
-export default class Options {
+export default class Options implements IOptions {
     private static _options: core.InputOptions = {
         required: true,
         trimWhitespace: true
