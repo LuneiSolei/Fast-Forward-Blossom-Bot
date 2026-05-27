@@ -10,7 +10,8 @@ import * as fs from "node:fs";
 let subject: IPrInfo;
 let octokit: Octokit;
 let eventPullRequest: PullRequestOpenedEvent;
-let eventIssue: IssueCommentCreatedEvent;
+let eventIssueCommentCreated: IssueCommentCreatedEvent;
+let eventIssueCommentEdited: IssueCommentEditedEvent;
 
 beforeEach(() => {
     subject = new PrInfo();
@@ -23,10 +24,15 @@ beforeEach(() => {
     let raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
     eventPullRequest = JSON.parse(raw);
 
-    // Create mock issue event. Can be used for both Created and Edited events
-    eventPath = process.env["LOCAL_ISSUE_COMMENT_EVENT_PATH"] as string;
+    // Create mock issue comment created event.
+    eventPath = process.env["LOCAL_ISSUE_COMMENT_CREATED_EVENT_PATH"] as string;
     raw = fs.readFileSync(path.resolve(eventPath), "utf8");
-    eventIssue = JSON.parse(raw);
+    eventIssueCommentCreated = JSON.parse(raw);
+
+    //
+    eventPath = process.env["LOCAL_ISSUE_COMMENT_EDITED_EVENT_PATH"] as string;
+    raw = fs.readFileSync(path.resolve(eventPath), "utf8");
+    eventIssueCommentEdited = JSON.parse(raw);
 });
 
 describe("SetEvent()", () => {
@@ -49,11 +55,11 @@ describe("SetEvent()", () => {
     }
 
     test("does not parse event properties when eventType is IssueCommentCreated", async () => {
-        commonEvent(eventIssue as IssueCommentCreatedEvent);
+        commonEvent(eventIssueCommentCreated);
     });
 
     test("does not parse event properties when eventType is IssueCommentEdited", async () => {
-        commonEvent(eventIssue as unknown as IssueCommentEditedEvent);
+        commonEvent(eventIssueCommentEdited);
     });
 
     test("sets properties when eventType is PullRequestOpened", async () => {
@@ -91,7 +97,7 @@ describe("FinishInitialization()", () => {
 
     test("returns early when event.pull_request is null and eventType is IssueCommentCreated", async () => {
         // Set up event
-        const event = eventIssue as IssueCommentCreatedEvent;
+        const event = eventIssueCommentCreated;
         // @ts-ignore
         event.issue.pull_request = undefined;
 
@@ -107,7 +113,7 @@ describe("FinishInitialization()", () => {
 
     test("returns early when event.action is not 'created' and eventType is IssueCommentCreated", async () => {
         // Set up event
-        const event = eventIssue as IssueCommentCreatedEvent;
+        const event = eventIssueCommentCreated;
         // @ts-ignore
         event.action = "edited";
 
@@ -124,7 +130,7 @@ describe("FinishInitialization()", () => {
 
     test("returns early when event.pull_request is null and eventType is IssueCommentEdited", async () => {
         // Set up event
-        const event = eventIssue as unknown as IssueCommentEditedEvent;
+        const event = eventIssueCommentEdited;
         // @ts-ignore
         event.issue.pull_request = undefined;
 
@@ -141,7 +147,7 @@ describe("FinishInitialization()", () => {
 
     test("returns early when event.action is not 'edited' and eventType is IssueCommentEdited", async () => {
         // Set up event
-        const event = eventIssue as unknown as IssueCommentEditedEvent;
+        const event = eventIssueCommentEdited;
         // @ts-ignore
         event.action = "created";
 
@@ -176,10 +182,10 @@ describe("FinishInitialization()", () => {
         }
         jest.mocked(octokit.graphql).mockResolvedValue(expectedValues);
 
-        subject.SetEvent(eventIssue, ActionEventType.IssueCommentCreated);
+        subject.SetEvent(eventIssueCommentCreated, ActionEventType.IssueCommentCreated);
         await subject.FinishInitialization(
             octokit,
-            eventIssue,
+            eventIssueCommentCreated,
             ActionEventType.IssueCommentCreated
         );
 
