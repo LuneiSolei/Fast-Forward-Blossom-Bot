@@ -6,9 +6,11 @@ install();
 
 export class Logger
 {
-    public static TypeError(message: string)
+    public static InvalidWorkflowValueError(variable: string, value: string, depth: number = 1): never
     {
-        const info = this.getCallerInfo();
+        const info = this.getCallerInfo(depth + 1);
+        const message = `Invalid value '${value}' for workflow variable '${variable}'`;
+        core.setFailed(message);
         throw new TypeError(message, {
             cause: {
                 source: info?.source,
