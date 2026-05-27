@@ -5,7 +5,7 @@ import Options from "../implements/options.js";
 let subject: IOptions;
 
 beforeEach(() => {
-    // NOTE: options are set via .env
+    // NOTE: Test environment variables are set via the run configuration
     subject = new Options();
 });
 
