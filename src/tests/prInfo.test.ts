@@ -63,13 +63,9 @@ beforeEach(() => {
 describe("SetEvent()", () => {
     beforeEach(async () => {
         subject = new PrInfo();
-        subject.SetEvent(eventPullRequest, ActionEventType.PullRequestOpened);
     });
 
-    test("waits for octokit authorization when eventType is IssueCommentCreated", async () => {
-        const event = eventIssue as IssueCommentCreatedEvent;
-        subject = new PrInfo();
-
+    function commonEvent(event: IssueCommentCreatedEvent | IssueCommentEditedEvent) {
         // Parse event
         subject.SetEvent(event, ActionEventType.IssueCommentCreated);
 
@@ -81,9 +77,18 @@ describe("SetEvent()", () => {
         expect(() => subject.HeadRepo).toThrow();
         expect(() => subject.HeadOwner).toThrow();
         expect(() => subject.NodeId).toThrow();
+    }
+
+    test("does not parse event properties when eventType is IssueCommentCreated", async () => {
+        commonEvent(eventIssue as IssueCommentCreatedEvent);
+    });
+
+    test("does not parse event properties when eventType is IssueCommentEdited", async () => {
+        commonEvent(eventIssue as unknown as IssueCommentEditedEvent);
     });
 
     test("sets properties when eventType is PullRequestOpened", async () => {
+        subject.SetEvent(eventPullRequest, ActionEventType.PullRequestOpened);
 
         expect(subject.BaseRef).toEqual(eventPullRequest.pull_request.base.ref);
         expect(subject.BaseSha).toEqual(eventPullRequest.pull_request.base.sha);
@@ -104,22 +109,6 @@ describe("SetEvent()", () => {
 })
 
 describe("FinishInitialization()", () => {
-    test("returns early when baseRef is already set", async () => {
-        // Set up event
-        (subject as any)._baseRef = "master";
-        const event = eventIssue as IssueCommentCreatedEvent; // We shouldn't need an event here
-
-        // Parse event
-        subject.SetEvent(event, ActionEventType.IssueCommentCreated);
-        await subject.FinishInitialization(
-            octokit as Octokit,
-            event,
-            ActionEventType.IssueCommentCreated);
-
-        // Test
-        expect(octokit.graphql as unknown as jest.Mock).not.toHaveBeenCalled();
-    });
-
     test("returns early when eventType is PullRequestOpened", async () => {
         // Parse event
         subject.SetEvent(eventPullRequest, ActionEventType.PullRequestOpened);
@@ -183,8 +172,7 @@ describe("FinishInitialization()", () => {
 
     test("returns early when event.action is not 'edited' and eventType is IssueCommentEdited", async () => {
         // Set up event
-        // @ts-ignore
-        const event = eventIssue as IssueCommentCreatedEdited;
+        const event = eventIssue as unknown as IssueCommentEditedEvent;
         // @ts-ignore
         event.action = "created";
 
@@ -239,5 +227,25 @@ describe("FinishInitialization()", () => {
         expect(subject.NodeId).toEqual(expectedValues.repository.pullRequest.id);
         expect(subject.MergeBaseSha).toBeNull();
         expect(subject.MergeBaseParentsAmount).toEqual(0);
+    });
+});
+
+describe("Uncovered Branches", () => {
+    beforeEach(() => {
+        subject = new PrInfo();
+        subject.SetEvent(eventPullRequest, ActionEventType.PullRequestOpened);
+        subject.FinishInitialization(octokit, eventPullRequest, ActionEventType.PullRequestOpened);
+    });
+
+    test("returns MergeBaseSha if already set", async () => {
+        (subject as any)._mergeBaseSha = "abc1234";
+
+        expect(subject.MergeBaseSha).toEqual("abc1234");
+    });
+
+    test("returns MergeBaseParentsAmount if already set", async () => {
+        (subject as any)._mergeBaseParentsAmount = "102983";
+
+        expect(subject.MergeBaseParentsAmount).toEqual("102983");
     });
 });

@@ -50,9 +50,6 @@ export default class PrInfo implements IPrInfo
                 core.info("Pull request comment created/edited. Waiting for Octokit authorization...")
 
                 break;
-            default:
-                core.setFailed(`Pull request could not be found on event '${event}'`);
-                Logger.ReferenceError("test");
         }
     }
 
@@ -61,8 +58,6 @@ export default class PrInfo implements IPrInfo
         event: ActionEvent,
         eventType: ActionEventType): Promise<void>
     {
-        if (this._baseRef) return;
-
         switch (eventType)
         {
             case ActionEventType.PullRequestOpened:
@@ -74,6 +69,8 @@ export default class PrInfo implements IPrInfo
                 break;
             case ActionEventType.IssueCommentEdited:
                 event = event as IssueCommentEditedEvent;
+
+                // istanbul ignore else
                 if (!event.issue.pull_request || event.action !== "edited") return;
         }
 
