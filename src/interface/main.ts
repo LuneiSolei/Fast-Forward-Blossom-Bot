@@ -42,7 +42,7 @@ export default class Main
         // TODO: rewrite comment formatting code
         const commentFormatter = new CommentFormatter(info.Repo.Pr);
 
-        commentFormatter.AddVerifyingLine();
+        commentFormatter.AddVerifyingLine(info.Options.AutoMerge);
         await commentFormatter.AddShellBlocks(info.Octokit, info.Repo);
 
         if (!info.Event.IsPossible)
@@ -51,7 +51,7 @@ export default class Main
             commentFormatter.AddNotPossibleLines(info.Repo.Pr);
             info.Event.ShouldExit = true;
         }
-        else if (!core.getBooleanInput("auto_merge"))
+        else if (!info.Options.AutoMerge)
         {
             // Fast-forward is possible, but auto_merge is disabled
             commentFormatter.AddAutoMergeDisabledLine();
@@ -65,11 +65,11 @@ export default class Main
         }
         else if (!info.Event.CommandInvoked && info.Event.EventType === ActionEventType.PullRequestOpened) {
             // This is a pull request opened event, but the command was not invoked.
-            commentFormatter.AddCommandNotInvokedLine();
+            commentFormatter.AddCommandNotInvokedLine(info.Options.CustomCommand);
             info.Event.ShouldExit = true;
         }
 
-        if (core.getInput("post_comment") == "always" || "on-error") {
+        if (info.Options.PostComment == "always" || "on-error") {
             await commentFormatter.PostComment(info.Octokit, info.Repo.Pr.NodeId);
         }
 

@@ -36,10 +36,10 @@ export default class CommentFormatter
         this._headFullRef = `${prInfo.HeadRef} (${prInfo.HeadRef})`
     }
 
-    public AddVerifyingLine(): void
+    public AddVerifyingLine(autoMerge: boolean): void
     {
         let result: string;
-        switch (core.getBooleanInput("auto_merge")) {
+        switch (autoMerge) {
             case true:
                 result = `Auto merge enabled. Verifying and then attempting to `;
                 break;
@@ -122,10 +122,10 @@ export default class CommentFormatter
             ${this._headFullRef}, but you do not appear to have permission to push to this repository.`;
     }
 
-    public AddCommandNotInvokedLine(): string
+    public AddCommandNotInvokedLine(customCommand: string): string
     {
         return `It is possible to fast-forward ${this._baseFullRef} to ${this._headFullRef}. If you have write access 
-            to the target repository, you can add the comment \`${core.getInput("command")}\` to initiate the fast-forward.`;
+            to the target repository, you can add the comment \`${customCommand}\` to initiate the fast-forward.`;
     }
 
     public async PostComment(octokit: Octokit, nodeId: string): Promise<void>
