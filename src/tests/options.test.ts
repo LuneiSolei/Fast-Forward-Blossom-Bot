@@ -10,6 +10,13 @@ beforeEach(() => {
 });
 
 describe("Property Getters", () => {
+    test("fails when post comment has an invalid value", async () => {
+        const original = process.env["INPUT_POST_COMMENT"] as string;
+        process.env["INPUT_POST_COMMENT"] = "anInvalidValue";
+        expect(() => new Options().PostComment).toThrow(TypeError);
+        process.env["INPUT_POST_COMMENT"] = original;
+    });
+
     test("gets auto merge", async () => {
         expect(subject.AutoMerge).toEqual(true);
     });
