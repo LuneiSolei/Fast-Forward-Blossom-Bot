@@ -14,23 +14,13 @@ export default class Options implements IOptions {
     public constructor() {
         this._autoMerge = core.getBooleanInput("auto_merge", Options._options);
         this._customCommand = core.getInput("custom_command", Options._options);
-        this._postComment = Options.GetPostComment();
+        this._postComment = core.getInput("post_comment", Options._options);
+
+        if (this._postComment !== "always" && this._postComment !== "on-error" && this._postComment !== "never") {
+            core.setFailed(`Invalid value '${this._postComment}' for workflow input 'comment'`)
+        }
 
         return this;
-    }
-
-    private static GetPostComment(): string
-    {
-        const comment: string = core.getInput("post_comment", this._options);
-        switch (comment) {
-            case "always":
-            case "on-error":
-            case "never":
-                return comment;
-            default:
-                core.setFailed(`Invalid value '${comment}' for workflow input 'comment'`);
-                throw new TypeError();
-        }
     }
 
     public get AutoMerge(): boolean
