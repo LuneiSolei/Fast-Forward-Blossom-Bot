@@ -6,7 +6,11 @@
     <jest-package value="$PROJECT_DIR$/node_modules/jest" />
     <working-dir value="$PROJECT_DIR$" />
     <jest-options value="--coverage" />
-    <envs />
+    <envs>
+      <env name="INPUT_AUTO_MERGE" value="true" />
+      <env name="INPUT_POST_COMMENT" value="always" />
+      <env name="INPUT_CUSTOM_COMMAND" value="/fast-forward" />
+    </envs>
     <scope-kind value="ALL" />
     <method v="2" />
   </configuration>
