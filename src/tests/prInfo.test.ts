@@ -4,6 +4,8 @@ import {Octokit} from "@octokit/core";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
+import path from "path";
+import * as fs from "node:fs";
 
 let subject: IPrInfo;
 let octokit: Octokit;
@@ -17,47 +19,14 @@ beforeEach(() => {
     } as unknown as Octokit;
 
     // Create mock pull request event
-    eventPullRequest = {
-        repository: {
-            owner: {
-                login: "luneisolei"
-            },
-            name: "Fast-Forward-Blossom-Bot"
-        },
-        pull_request: {
-            base: {
-                ref: "master",
-                sha: "abc1234"
-            },
-            head: {
-                ref: "master",
-                sha: "abc1234",
-                label: "LuneiSolei/new-feature-branch",
-                repo: {
-                    name: "Fast-Forward-Blossom-Bot",
-                    owner: {
-                        login: "luneisolei"
-                    }
-                }
-            },
-            node_id: "MDQ6VXNlcjU4MzIzMQ=="
-        }
-    } as PullRequestOpenedEvent;
+    let eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+    let raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
+    eventPullRequest = JSON.parse(raw);
 
     // Create mock issue event. Can be used for both Created and Edited events
-    eventIssue = {
-        action: "created",
-        repository: {
-            owner: {
-                login: "luneisolei"
-            },
-            name: "Fast-Forward-Blossom-Bot"
-        },
-        issue: {
-            number: 42,
-            pull_request: {}
-        }
-    } as IssueCommentCreatedEvent;
+    eventPath = process.env["LOCAL_ISSUE_COMMENT_EVENT_PATH"] as string;
+    raw = fs.readFileSync(path.resolve(eventPath), "utf8");
+    eventIssue = JSON.parse(raw);
 });
 
 describe("SetEvent()", () => {
