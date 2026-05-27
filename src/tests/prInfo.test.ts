@@ -70,13 +70,13 @@ describe("SetEvent()", () => {
         subject.SetEvent(event, ActionEventType.IssueCommentCreated);
 
         expect(() => subject.BaseRef).toThrow(ReferenceError);
-        expect(() => subject.BaseSha).toThrow();
-        expect(() => subject.HeadRef).toThrow();
-        expect(() => subject.HeadSha).toThrow();
-        expect(() => subject.HeadLabel).toThrow();
-        expect(() => subject.HeadRepo).toThrow();
-        expect(() => subject.HeadOwner).toThrow();
-        expect(() => subject.NodeId).toThrow();
+        expect(() => subject.BaseSha).toThrow(ReferenceError);
+        expect(() => subject.HeadRef).toThrow(ReferenceError);
+        expect(() => subject.HeadSha).toThrow(ReferenceError);
+        expect(() => subject.HeadLabel).toThrow(ReferenceError);
+        expect(() => subject.HeadRepo).toThrow(ReferenceError);
+        expect(() => subject.HeadOwner).toThrow(ReferenceError);
+        expect(() => subject.NodeId).toThrow(ReferenceError);
     }
 
     test("does not parse event properties when eventType is IssueCommentCreated", async () => {
