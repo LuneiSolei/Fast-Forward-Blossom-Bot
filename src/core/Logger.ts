@@ -20,6 +20,30 @@ export class Logger
         });
     }
 
+    public static InvalidEventError(event: string, depth: number = 1): never
+    {
+        const info = this.getCallerInfo(depth + 1);
+        const message = `Received invalid event: ${event}`;
+        core.setFailed(message);
+        throw new TypeError(message, {
+            cause: {
+                ...info
+            }
+        })
+    }
+
+    public static EventFileParseError(eventPath: string, depth: number = 1): never
+    {
+        const info = this.getCallerInfo(depth + 1);
+        const message = `Event file could not be parsed: ${eventPath}`;
+        core.setFailed(message)
+        throw new SyntaxError(message, {
+            cause: {
+                ...info
+            }
+        })
+    }
+
     public static ReferenceError(message: string, depth: number = 1): never
     {
         const info = this.getCallerInfo(depth + 1);

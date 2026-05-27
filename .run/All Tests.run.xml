@@ -7,12 +7,14 @@
     <working-dir value="$PROJECT_DIR$" />
     <jest-options value="--coverage" />
     <envs>
+      <env name="ACTIONS_STEP_DEBUG" value="true" />
       <env name="INPUT_AUTO_MERGE" value="true" />
       <env name="INPUT_CUSTOM_COMMAND" value="/fast-forward" />
       <env name="INPUT_POST_COMMENT" value="always" />
       <env name="LOCAL_ISSUE_COMMENT_CREATED_EVENT_PATH" value="./src/tests/eventIssueCommentCreated.json" />
-      <env name="LOCAL_PULL_REQUEST_EVENT_PATH" value="./src/tests/eventPullRequest.json" />
       <env name="LOCAL_ISSUE_COMMENT_EDITED_EVENT_PATH" value="./src/tests/eventIssueCommentEdited.json" />
+      <env name="LOCAL_PULL_REQUEST_EVENT_PATH" value="./src/tests/eventPullRequest.json" />
+      <env name="LOCAL_INVALID_EVENT_PATH" value="./src/tests/eventInvalid.json" />
     </envs>
     <scope-kind value="ALL" />
     <method v="2" />

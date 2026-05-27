@@ -9,7 +9,12 @@ import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IOptions from "../core/actionInfo/IOptions.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
-import type {IssueCommentEvent} from "@octokit/webhooks-types";
+import type {
+    IssueCommentCreatedEvent,
+    IssueCommentEditedEvent,
+    PullRequestOpenedEvent
+} from "@octokit/webhooks-types";
+import {Logger} from "../core/Logger.js";
 
 export default class EventInfo implements IEventInfo
 {
@@ -19,7 +24,7 @@ export default class EventInfo implements IEventInfo
     private _octokit?: Octokit = undefined;
     private _options: IOptions;
     private _commandInvoked?: boolean;
-    private _commentBody?: string
+    private _commentBody?: string | null
     private _isPossible?: boolean
     private _userHasPerms?: boolean
     private _shouldExit: boolean = false
@@ -27,41 +32,38 @@ export default class EventInfo implements IEventInfo
     public constructor(options: IOptions, eventPath: string)
     {
         this._options = options;
+
+        // Read the event
         const raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
-        const event = JSON.parse(raw);
+        let event: ActionEvent;
+        try {
+            event = JSON.parse(raw);
+        } catch (error) {
+            Logger.EventFileParseError(eventPath);
+        }
+
+        // Determine the event type
         this._eventActionMap.set(
             "opened",
-            {check: (): boolean => event.pull_request, type: ActionEventType.PullRequestOpened}
+            {check: (): boolean => "pull_request" in event, type: ActionEventType.PullRequestOpened}
         );
         this._eventActionMap.set(
             "created",
-            {check: (): boolean => event.comment, type: ActionEventType.IssueCommentCreated}
+            {check: (): boolean => "comment" in event, type: ActionEventType.IssueCommentCreated}
         );
         this._eventActionMap.set(
             "edited",
-            {check: (): boolean => event.comment, type: ActionEventType.IssueCommentEdited}
+            {check: (): boolean => "comment" in event, type: ActionEventType.IssueCommentEdited}
         )
 
         const config = this._eventActionMap.get(event.action);
         if (config?.check()) {
             this._eventType = config.type;
             this._event = event as ActionEvent;
-
-            if (process.env["ACTIONS_STEP_DEBUG"])
-            {
-                core.debug(`Received '${this.EventType.toString()}Event: ${JSON.stringify(event, null, 2)}`);
-            }
-
-            return this;
+        } else {
+            // Invalid event
+            Logger.InvalidEventError(JSON.stringify(event, null, 2), 1);
         }
-
-        // Invalid event
-        if (process.env["ACTIONS_STEP_DEBUG"])
-        {
-            core.debug(`Received invalid event: ${JSON.stringify(event, null, 2)}`);
-        }
-
-        process.exit(0);
     }
 
     public get Event(): ActionEvent
@@ -69,31 +71,49 @@ export default class EventInfo implements IEventInfo
         return this._event;
     }
 
-    public get EventType(): ActionEventType {
+    public get EventType(): ActionEventType
+    {
         return this._eventType;
     }
 
     public get CommandInvoked(): boolean
     {
-        if (this.EventType !== ActionEventType.IssueCommentCreated && ActionEventType.IssueCommentEdited) return false;
+        if (this._commandInvoked)
+            return this._commandInvoked;
 
-        if (this._commandInvoked) return this._commandInvoked;
+        // Check if event is relevant type
+        if (this.EventType !== ActionEventType.IssueCommentCreated
+            && this.EventType !== ActionEventType.IssueCommentEdited)
+        {
+            this._commandInvoked = false;
+            return this._commandInvoked;
+        }
 
-        this._commandInvoked = (this.CommentBody.trim() === this._options.CustomCommand);
+        this._commandInvoked = (this.CommentBody?.trim() === this._options.CustomCommand);
 
         return this._commandInvoked;
     }
 
-    public get CommentBody(): string
+    public get CommentBody(): string | null
     {
         if (this._commentBody) return this._commentBody;
 
-        const event = this._event as IssueCommentEvent;
+        switch (this._eventType) {
+            case ActionEventType.PullRequestOpened:
+                this._commentBody = (this._event as PullRequestOpenedEvent).pull_request.body;
+                break;
+            case ActionEventType.IssueCommentCreated:
+                this._commentBody = (this._event as IssueCommentCreatedEvent).comment.body;
+                break;
+            case ActionEventType.IssueCommentEdited:
+                this._commentBody = (this._event as IssueCommentEditedEvent).comment.body;
+                break;
+        }
 
-        return event.comment.body;
+        return this._commentBody;
     }
 
-    public IsPossible: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
+    public GetIsPossible: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
         if (this._isPossible) return this._isPossible;
 
@@ -108,7 +128,7 @@ export default class EventInfo implements IEventInfo
         return this._isPossible;
     }
 
-    public UserHasPerms: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
+    public GetUserHasPerms: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
         if (this._userHasPerms) return this._userHasPerms;
         if (repo.Owner === repo.User) {
@@ -139,7 +159,7 @@ export default class EventInfo implements IEventInfo
         this._shouldExit = value;
     }
 
-    public get Octokit(): Octokit
+    private get Octokit(): Octokit
     {
         if (this._octokit) return this._octokit;
 

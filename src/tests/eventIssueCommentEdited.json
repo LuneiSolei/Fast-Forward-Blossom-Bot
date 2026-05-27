@@ -1,5 +1,8 @@
 {
     "action": "edited",
+    "comment": {
+        "body": " /fast-forward"
+    },
     "repository": {
         "owner": {
             "login": "luneisolei"
