@@ -1,0 +1,26 @@
+{
+    "repository": {
+        "owner": {
+            "login": "luneisolei"
+        },
+        "name": "Fast-Forward-Blossom-Bot"
+    },
+    "pull_request": {
+        "base": {
+            "ref": "master",
+            "sha": "abc1234"
+        },
+        "head": {
+            "ref": "master",
+            "sha": "abc1234",
+            "label": "LuneiSolei/new-feature-branch",
+            "repo": {
+                "name": "Fast-Forward-Blossom-Bot",
+                "owner": {
+                    "login": "luneisolei"
+                }
+            }
+        },
+        "node_id": "MDQ6VXNlcjU4MzIzMQ=="
+    }
+}

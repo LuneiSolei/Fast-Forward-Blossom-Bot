@@ -20,7 +20,7 @@ export default class ActionInfo implements IActionInfo
         octokit: Octokit,
         prInfo: new () => IPrInfo,
         options: new () => IOptions,
-        eventInfo: new (options: IOptions) => IEventInfo,
+        eventInfo: new (options: IOptions, eventPath: string) => IEventInfo,
         repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo)
     {
         core.debug("Retrieving options...");
@@ -28,7 +28,7 @@ export default class ActionInfo implements IActionInfo
 
         // Get basic info first
         core.debug("Retrieving basic event info...");
-        this._event = new eventInfo(this._options);
+        this._event = new eventInfo(this._options, process.env["GITHUB_EVENT_PATH"] as string);
         core.debug("Done!");
 
         core.debug("Retrieving basic pull request info...");
@@ -55,7 +55,7 @@ export default class ActionInfo implements IActionInfo
     public static async Create(
         prInfo: new () => IPrInfo,
         options: new () => IOptions,
-        eventInfo: new (options: IOptions) => IEventInfo,
+        eventInfo: new (options: IOptions, eventPath: string) => IEventInfo,
         repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo,
     ): Promise<ActionInfo>
     {
@@ -63,7 +63,7 @@ export default class ActionInfo implements IActionInfo
 
         // Create temporary instances to get repo info for authentication
         const tempOptions = new options();
-        const tempEvent = new eventInfo(tempOptions);
+        const tempEvent = new eventInfo(tempOptions, process.env["GITHUB_EVENT_PATH"] as string);
         const tempPrInfo = new prInfo();
         tempPrInfo.SetEvent(tempEvent.Event, tempEvent.EventType);
         const tempRepo = new repoInfo(tempPrInfo, tempEvent.Event);

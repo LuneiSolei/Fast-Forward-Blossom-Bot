@@ -24,11 +24,9 @@ export default class EventInfo implements IEventInfo
     private _userHasPerms?: boolean
     private _shouldExit: boolean = false
 
-    public constructor(options: IOptions)
+    public constructor(options: IOptions, eventPath: string)
     {
         this._options = options;
-
-        const eventPath: string = process.env["GITHUB_EVENT_PATH"] as string;
         const raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
         const event = JSON.parse(raw);
         this._eventActionMap.set(

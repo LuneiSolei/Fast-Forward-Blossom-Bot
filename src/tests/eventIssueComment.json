@@ -1,0 +1,13 @@
+{
+    "action": "created",
+    "repository": {
+        "owner": {
+            "login": "luneisolei"
+        },
+        "name": "Fast-Forward-Blossom-Bot"
+    },
+    "issue": {
+        "number": 42,
+        "pull_request": {}
+    }
+}
