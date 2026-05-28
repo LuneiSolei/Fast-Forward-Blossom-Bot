@@ -12,6 +12,7 @@
       <env name="INPUT_CUSTOM_COMMAND" value="/fast-forward" />
       <env name="INPUT_POST_COMMENT" value="always" />
       <env name="LOCAL_INCORRECT_EVENT_PATH" value="./src/tests/events/incorrect.json" />
+      <env name="LOCAL_INVALID_EVENT_PATH" value="./src/tests/events/invalid.txt" />
       <env name="LOCAL_ISSUE_COMMENT_CREATED_EVENT_PATH" value="./src/tests/events/issueCommentCreated.json" />
       <env name="LOCAL_ISSUE_COMMENT_EDITED_EVENT_PATH" value="./src/tests/events/issueCommentEdited.json" />
       <env name="LOCAL_PULL_REQUEST_OPENED_EVENT_PATH" value="./src/tests/events/pullRequestOpened.json" />

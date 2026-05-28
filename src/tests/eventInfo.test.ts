@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import EventInfo from "../implements/eventInfo.js";
 import Options from "../implements/options.js";
-import * as fs from "node:fs";
+import fs from "node:fs";
 import path from "path";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
@@ -12,7 +12,8 @@ let subject: IEventInfo;
 
 describe("constructor", () => {
     test("throws when JSON parsing fails", async () => {
-        expect(() => new EventInfo(new Options(), "NotAnEvent")).toThrow();
+        const eventPath = process.env["LOCAL_INVALID_EVENT_PATH"] as string;
+        expect(() => new EventInfo(new Options(), eventPath)).toThrow();
     });
 
     test("throws when an invalid event is supplied", async () => {
