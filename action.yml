@@ -26,24 +26,3 @@ inputs:
 runs:
     using: node20
     main: dist/interface/index.js
-
-#  steps:
-#    - id: prechecks
-#      shell: bash
-#      env:
-#        COMMENT: ${{ inputs.comment }}
-#        GITHUB_TOKEN: ${{ inputs.github_token }}
-#        AUTO_MERGE: ${{ inputs.auto_merge }}
-#      run: ${{ github.action_path }}/scripts/prechecks.sh
-#    - id: get-pr
-#      shell: bash
-#      run: ${{ github.action_path }}/scripts/get-pr.sh
-#    - id: verify-state
-#      shell: bash
-#      run: ${{ github.action_path }}/scripts/verify-state.sh
-#    - id: fast-forward
-#      shell: bash
-#      run: ${{ github.action_path }}/scripts/fast-forward.sh
-#    - id: post-comment
-#      shell: bash
-#      run: ${{ github.action_path }}/scripts/post-comment.sh
