@@ -19,13 +19,22 @@ describe("Property Getters", () => {
 
     test("gets auto merge", async () => {
         expect(subject.AutoMerge).toEqual(true);
+
+        // Perform again to test if branch
+        expect(subject.AutoMerge).toEqual(true);
     });
 
     test("gets custom command", async () => {
         expect(subject.CustomCommand).toEqual("/fast-forward");
+
+        // Perform again to test if branch
+        expect(subject.CustomCommand).toEqual("/fast-forward");
     });
 
     test ("gets post comment", async () => {
+        expect(subject.PostComment).toEqual("always");
+
+        // Perform again to test if branch
         expect(subject.PostComment).toEqual("always");
     });
 });

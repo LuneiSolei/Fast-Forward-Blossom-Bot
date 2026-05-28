@@ -20,7 +20,7 @@ beforeEach(() => {
     } as unknown as Octokit;
 
     // Create mock pull request event
-    let eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+    let eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
     let raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
     eventPullRequest = JSON.parse(raw);
 

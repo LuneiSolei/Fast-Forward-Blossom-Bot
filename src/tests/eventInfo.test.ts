@@ -10,16 +10,22 @@ import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 
 let subject: IEventInfo;
 
-test("constructor throws when an invalid event is supplied", async () => {
-    const eventPath = process.env["LOCAL_INVALID_EVENT_PATH"] as string;
-    expect(() => new EventInfo(new Options(), eventPath)).toThrow();
+describe("constructor", () => {
+    test("throws when JSON parsing fails", async () => {
+        expect(() => new EventInfo(new Options(), "NotAnEvent")).toThrow();
+    });
+
+    test("throws when an invalid event is supplied", async () => {
+        const eventPath = process.env["LOCAL_INCORRECT_EVENT_PATH"] as string;
+        expect(() => new EventInfo(new Options(), eventPath)).toThrow();
+    });
 });
 
 describe("IsPossible", () => {
     let mockRepoInfo: IRepoInfo;
 
     beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
         subject = new EventInfo(new Options(), eventPath);
 
         mockRepoInfo = {
@@ -69,7 +75,7 @@ describe("GetUserHasPerms", () => {
     let mockRepoInfo: IRepoInfo;
 
     beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
         subject = new EventInfo(new Options(), eventPath);
 
         mockRepoInfo = {
@@ -112,7 +118,7 @@ describe("GetUserHasPerms", () => {
 
 describe("ShouldExit", () => {
     beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
         subject = new EventInfo(new Options(), eventPath);
     });
 
@@ -129,7 +135,7 @@ describe("ShouldExit", () => {
 describe("when event type is PullRequestOpened", () => {
     let event: PullRequestOpenedEvent;
     beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_EVENT_PATH"] as string;
+        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
         subject = new EventInfo(new Options(), eventPath);
         const raw = fs.readFileSync(path.resolve(eventPath), "utf8");
         event = JSON.parse(raw);
