@@ -8,6 +8,7 @@ import PrInfo from "../implements/prInfo.js";
 import Options from "../implements/options.js";
 import EventInfo from "../implements/eventInfo.js";
 import RepoInfo from "../implements/repoInfo.js";
+import type IActionInfo from "../core/actionInfo/IActionInfo.js";
 
 export default class Main
 {
@@ -21,7 +22,7 @@ export default class Main
             process.exit(1);
         }
 
-        let info: ActionInfo = await ActionInfo.Create(
+        let info: IActionInfo = await ActionInfo.Create(
             PrInfo,
             Options,
             EventInfo,
