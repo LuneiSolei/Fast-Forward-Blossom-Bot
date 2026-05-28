@@ -23,3 +23,4 @@ bin-release/
 /coverage/
 *.pem
 *.env
+/scripts/
