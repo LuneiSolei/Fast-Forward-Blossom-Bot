@@ -4,7 +4,7 @@
         "owner": {
             "login": "luneisolei"
         },
-        "name": "Fast-Forward-Blossom-Bot"
+        "name": "Fast-Forward-Blossom-Bot-Tests"
     },
     "pull_request": {
         "base": {
@@ -17,7 +17,7 @@
             "sha": "abc1234",
             "label": "LuneiSolei/new-feature-branch",
             "repo": {
-                "name": "Fast-Forward-Blossom-Bot",
+                "name": "Fast-Forward-Blossom-Bot-Tests",
                 "owner": {
                     "login": "luneisolei"
                 }
