@@ -44,15 +44,14 @@ export class Logger
         })
     }
 
-    public static ReferenceError(message: string, depth: number = 1): never
+    public static ReferenceError(variable: string, depth: number = 1): never
     {
         const info = this.getCallerInfo(depth + 1);
+        const message = `Attempted to access undefined '${variable}'`
         core.setFailed(message);
         throw new ReferenceError(message, {
             cause: {
-                source: info?.source,
-                line: info?.line,
-                column: info?.column,
+                ...info
             }
         });
     }

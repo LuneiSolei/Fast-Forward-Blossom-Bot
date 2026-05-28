@@ -10,7 +10,7 @@ import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
-import {Logger} from "../core/Logger.js";
+import {Logger} from "../core/logger.js";
 
 export default class PrInfo implements IPrInfo
 {
@@ -135,50 +135,50 @@ export default class PrInfo implements IPrInfo
     public get BaseRef(): string {
         if (this._baseRef) return this._baseRef;
 
-        Logger.ReferenceError("Attempted to access 'BaseRef' before finishing initialization.", 1);
+        Logger.ReferenceError("BaseRef", 1);
     }
 
     public get BaseSha(): string {
         if (this._baseSha) return this._baseSha;
 
-        Logger.ReferenceError("Attempted to access 'BaseSha' before finishing initialization.");
+        Logger.ReferenceError("BaseSha");
     }
 
     public get HeadRef(): string {
         if (this._headRef) return this._headRef;
 
-        Logger.ReferenceError("Attempted to access 'HeadRef' before finishing initialization.");
+        Logger.ReferenceError("HeadRef");
     }
 
     public get HeadSha(): string {
         if (this._headSha) return this._headSha;
 
-        Logger.ReferenceError("Attempted to access 'HeadSha' before finishing initialization.");
+        Logger.ReferenceError("HeadSha");
     }
 
     public get HeadLabel(): string {
         if (this._headLabel) return this._headLabel;
 
-        Logger.ReferenceError("Attempted to access 'HeadLabel' before finishing initialization.");
+        Logger.ReferenceError("HeadLabel");
     }
 
     public get NodeId(): string {
         if (this._nodeId) return this._nodeId;
 
-        Logger.ReferenceError("Attempted to access 'NodeId' before finishing initialization.");
+        Logger.ReferenceError("NodeId");
     }
 
     public get HeadOwner(): string
     {
         if (this._headOwner) return this._headOwner;
 
-        Logger.ReferenceError("Attempted to access 'HeadOwner' before finishing initialization.");
+        Logger.ReferenceError("HeadOwner");
     }
 
     public get HeadRepo(): string
     {
         if (this._headRepo) return this._headRepo;
 
-        Logger.ReferenceError("Attempted to access 'HeadRepo' before finishing initialization.");
+        Logger.ReferenceError("HeadRepo");
     }
 }

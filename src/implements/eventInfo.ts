@@ -14,7 +14,7 @@ import type {
     IssueCommentEditedEvent,
     PullRequestOpenedEvent
 } from "@octokit/webhooks-types";
-import {Logger} from "../core/Logger.js";
+import {Logger} from "../core/logger.js";
 
 export default class EventInfo implements IEventInfo
 {
@@ -78,6 +78,7 @@ export default class EventInfo implements IEventInfo
 
     public get CommandInvoked(): boolean
     {
+        // istanbul ignore if
         if (this._commandInvoked)
             return this._commandInvoked;
 
@@ -96,6 +97,7 @@ export default class EventInfo implements IEventInfo
 
     public get CommentBody(): string | null
     {
+        // istanbul ignore if
         if (this._commentBody) return this._commentBody;
 
         switch (this._eventType) {
@@ -115,6 +117,7 @@ export default class EventInfo implements IEventInfo
 
     public GetIsPossible: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
+        // istanbul ignore if
         if (this._isPossible) return this._isPossible;
 
         core.info("Determining if fast-forward is possible...");
@@ -130,7 +133,9 @@ export default class EventInfo implements IEventInfo
 
     public GetUserHasPerms: (repo: IRepoInfo) => Promise<boolean> = async (repo: IRepoInfo) =>
     {
+        // istanbul ignore if
         if (this._userHasPerms) return this._userHasPerms;
+
         if (repo.Owner === repo.User) {
             // User is owner
             this._userHasPerms = true;
@@ -161,9 +166,9 @@ export default class EventInfo implements IEventInfo
 
     private get Octokit(): Octokit
     {
+        // istanbul ignore if
         if (this._octokit) return this._octokit;
 
-        core.setFailed("Attempted to access 'octokit' before initialization.");
-        process.exit(1);
+        Logger.ReferenceError("octokit", 1);
     }
 }

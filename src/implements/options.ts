@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import type IOptions from "../core/actionInfo/IOptions.js";
-import {Logger} from "../core/Logger.js";
+import {Logger} from "../core/logger.js";
 
 export default class Options implements IOptions {
     private static _options: core.InputOptions = {

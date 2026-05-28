@@ -45,7 +45,7 @@ export default class Main
         commentFormatter.AddVerifyingLine(info.Options.AutoMerge);
         await commentFormatter.AddShellBlocks(info.Octokit, info.Repo);
 
-        if (!info.Event.IsPossible)
+        if (!info.Event.GetIsPossible)
         {
             // Fast-forward is not possible
             commentFormatter.AddNotPossibleLines(info.Repo.Pr);
@@ -57,7 +57,7 @@ export default class Main
             commentFormatter.AddAutoMergeDisabledLine();
             info.Event.ShouldExit = true;
         }
-        else if (!info.Event.UserHasPerms)
+        else if (!info.Event.GetUserHasPerms)
         {
             // User does not have proper permission(s)
             commentFormatter.AddNoPermsLine(info.Repo);

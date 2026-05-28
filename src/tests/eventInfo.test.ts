@@ -90,7 +90,13 @@ describe("GetUserHasPerms", () => {
         });
     });
 
-    test("returns true when user is an owner or collaborator", async () => {
+    test("returns true when user is an owner", async () => {
+        (mockRepoInfo as any).User = "luneisolei";
+        const userHasPerms = await subject.GetUserHasPerms(mockRepoInfo);
+        expect(userHasPerms).toEqual(true);
+    });
+
+    test("returns true when user is a collaborator", async () => {
         jest.mocked((subject as any)._octokit.graphql).mockResolvedValue({
             repository: {
                 collaborators: {
@@ -211,10 +217,10 @@ describe("when event type is IssueCommentEdited", () => {
     test("get CommentBody", async () => {
         expect(subject.CommentBody).toEqual(" /fast-forward");
     });
-
-
 });
 
-describe("property setters", () => {
-
+test("octokit getter throws when not available", () => {
+    const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
+    subject = new EventInfo(new Options(), eventPath);
+    expect(() => (subject as any).Octokit).toThrow(ReferenceError)
 });
