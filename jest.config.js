@@ -9,5 +9,6 @@ export default {
     ...presetConfig,
     moduleNameMapper: {
         "^(.*)\.js$": "$1"
-    }
+    },
+    setupFiles: ['<rootDir>/jest.setup.ts']
 };

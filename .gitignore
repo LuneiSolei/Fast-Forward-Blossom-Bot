@@ -23,6 +23,3 @@ bin-release/
 /coverage/
 *.pem
 *.env
-
-# Jest
-jest.setup.ts
