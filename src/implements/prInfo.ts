@@ -10,7 +10,7 @@ import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
-import {Logger} from "../core/logger.js";
+import {Logger} from "../core/logger/logger.js";
 
 export default class PrInfo implements IPrInfo
 {

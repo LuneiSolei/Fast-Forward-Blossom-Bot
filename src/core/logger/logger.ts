@@ -1,5 +1,7 @@
 import { mapSourcePosition, install } from "source-map-support";
 import * as core from "@actions/core";
+import InvalidInstallationTokenError from "./invalidInstallationTokenError.js";
+import AppNotInstalledError from "./appNotInstalledError.js";
 
 // Register source-map-support once
 install();
@@ -8,25 +10,18 @@ export class Logger
 {
     public static AppNotInstalledError(owner: string, repoName: string): never
     {
-        const message = `The GitHub App for 'Fast-Forward-Blossom-Bot' is not installed in repository '${owner}/${repoName}'`
-        core.setFailed(message);
-        throw new Error(message);
+        throw new AppNotInstalledError(owner, repoName);
     }
+
     public static Debug(message: string)
     {
         core.debug(message);
     }
 
-    public static InvalidInstallationTokenError(depth: number = 1)
+    public static InvalidInstallationTokenError(depth: number = 1) : never
     {
         const info = this.getCallerInfo(depth + 1)
-        const message = `Failed to obtain installation token`;
-        core.setFailed(message);
-        throw new Error(message, {
-            cause: {
-                ...info
-            }
-        })
+        throw new InvalidInstallationTokenError({ ...info })
     }
 
     public static EventFileParseError(eventPath: string, depth: number = 1): never

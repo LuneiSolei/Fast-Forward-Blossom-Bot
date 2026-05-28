@@ -1,13 +1,12 @@
 import {Octokit} from "@octokit/core";
-import * as fs from "node:fs";
-import {createAppAuth} from "@octokit/auth-app";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IOptions from "../core/actionInfo/IOptions.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
-import Logger from "../core/logger.js";
+import Logger from "../core/logger/logger.js";
+import OctokitFactory from "../core/octokitFactory.js";
 
 export default class ActionInfo implements IActionInfo
 {
@@ -69,57 +68,18 @@ export default class ActionInfo implements IActionInfo
         const tempRepo = new repoInfo(tempPrInfo, tempEvent.Event);
 
         // Authenticate
-        const octokit = await ActionInfo.CreateOctokit(tempRepo.Owner, tempRepo.Name);
-        const actionInfo = new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
-
-        Logger.Debug("Done!");
-        return actionInfo;
+        const octokit = await OctokitFactory.Create(tempRepo.Owner, tempRepo.Name);
+        return new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
     }
 
-    private static async CreateOctokit(owner: string, repoName: string): Promise<Octokit>
-    {
-        Logger.Debug("Creating Octokit instance...");
-        const APP_ID = process.env["APP_CLIENT_ID"] as string;
-        const PRIVATE_KEY = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"] as string, "utf8");
-
-        // Create Octokit JWT
-        let octokit = new Octokit({
-            authStrategy: createAppAuth,
-            auth: {
-                appId: APP_ID,
-                privateKey: PRIVATE_KEY
-            }
-        });
-
-        Logger.Debug(`Getting installation key for ${owner}'s ${repoName}`);
-
-        // Find repo installation
-        let res;
-        try {
-            res = await octokit.request(
-                "GET /repos/{owner}/{repo}/installation",
-                { owner, repo: repoName }
-            );
-        } catch (error) {
-            Logger.AppNotInstalledError(owner, repoName);
-        }
-
-
-        // Exchange installation ID for installation token
-        const appAuth = createAppAuth({
-            appId: APP_ID,
-            privateKey: PRIVATE_KEY,
-            installationId: res.data.id
-        });
-        const authRes = await appAuth({type: "installation"})
-
-        if (!authRes.token) Logger.InvalidInstallationTokenError();
-
-        // Authenticate as app
-        octokit = new Octokit({ auth: authRes.token });
-
-        Logger.Debug("Done!");
-        return octokit;
+    public static async CreateWithOctokit(
+        octokit: Octokit,
+        prInfo: new () => IPrInfo,
+        options: new () => IOptions,
+        eventInfo: new (options: IOptions, eventPath: string) => IEventInfo,
+        repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo
+    ): Promise<IActionInfo> {
+        return new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
     }
 
     public get Octokit(): Octokit {

@@ -14,7 +14,7 @@ import type {
     IssueCommentEditedEvent,
     PullRequestOpenedEvent
 } from "@octokit/webhooks-types";
-import Logger from "../core/logger.js";
+import Logger from "../core/logger/logger.js";
 
 export default class EventInfo implements IEventInfo
 {
