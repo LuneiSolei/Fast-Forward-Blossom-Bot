@@ -6,7 +6,6 @@ export default class RepoInfo implements IRepoInfo
 {
     private readonly _name: string;
     private readonly _pr: IPrInfo
-    private readonly _user: string;
     private readonly _owner: string;
     private readonly _cloneUrl: string;
 
@@ -16,7 +15,6 @@ export default class RepoInfo implements IRepoInfo
     {
         this._owner = event.repository.owner.login;
         this._name = event.repository.name;
-        this._user = event.sender.login;
         this._pr = prInfo;
         this._cloneUrl = event.repository.clone_url;
 
@@ -31,11 +29,6 @@ export default class RepoInfo implements IRepoInfo
     public get Owner(): string
     {
         return this._owner;
-    }
-
-    public get User(): string
-    {
-        return this._user;
     }
 
     public get Pr(): IPrInfo {

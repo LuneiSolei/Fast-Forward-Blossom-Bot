@@ -12,4 +12,5 @@ export default interface IEventInfo
     get CommandInvoked(): boolean;
     get EventType(): ActionEventType;
     get Event(): ActionEvent;
+    get User(): string;
 }
