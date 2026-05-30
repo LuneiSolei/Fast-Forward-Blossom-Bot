@@ -10,7 +10,7 @@ import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
-import {Logger} from "../core/logger/logger.js";
+import ReferenceError from "../core/logger/referenceError.js";
 
 export default class PrInfo implements IPrInfo
 {
@@ -135,50 +135,50 @@ export default class PrInfo implements IPrInfo
     public get BaseRef(): string {
         if (this._baseRef) return this._baseRef;
 
-        Logger.ReferenceError("BaseRef", 1);
+        throw new ReferenceError("BaseRef");
     }
 
     public get BaseSha(): string {
         if (this._baseSha) return this._baseSha;
 
-        Logger.ReferenceError("BaseSha");
+        throw new ReferenceError("BaseSha");
     }
 
     public get HeadRef(): string {
         if (this._headRef) return this._headRef;
 
-        Logger.ReferenceError("HeadRef");
+        throw new ReferenceError("HeadRef");
     }
 
     public get HeadSha(): string {
         if (this._headSha) return this._headSha;
 
-        Logger.ReferenceError("HeadSha");
+        throw new ReferenceError("HeadSha");
     }
 
     public get HeadLabel(): string {
         if (this._headLabel) return this._headLabel;
 
-        Logger.ReferenceError("HeadLabel");
+        throw new ReferenceError("HeadLabel");
     }
 
     public get NodeId(): string {
         if (this._nodeId) return this._nodeId;
 
-        Logger.ReferenceError("NodeId");
+        throw new ReferenceError("NodeId");
     }
 
     public get HeadOwner(): string
     {
         if (this._headOwner) return this._headOwner;
 
-        Logger.ReferenceError("HeadOwner");
+        throw new ReferenceError("HeadOwner");
     }
 
     public get HeadRepo(): string
     {
         if (this._headRepo) return this._headRepo;
 
-        Logger.ReferenceError("HeadRepo");
+        throw new ReferenceError("HeadRepo");
     }
 }

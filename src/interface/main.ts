@@ -88,6 +88,7 @@ export default class Main
 }
 
 // Used implicitly via "@github/local-action"
+// noinspection JSUnusedGlobalSymbols
 export async function run() {
     await Main.run().catch(err => core.error(err));
 }

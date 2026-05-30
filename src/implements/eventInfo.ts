@@ -14,7 +14,9 @@ import type {
     IssueCommentEditedEvent,
     PullRequestOpenedEvent
 } from "@octokit/webhooks-types";
-import Logger from "../core/logger/logger.js";
+import EventFileError from "../core/logger/eventFileError.js";
+import InvalidEventError from "../core/logger/invalidEventError.js";
+import ReferenceError from "../core/logger/referenceError.js";
 
 export default class EventInfo implements IEventInfo
 {
@@ -39,7 +41,7 @@ export default class EventInfo implements IEventInfo
         try {
             event = JSON.parse(raw);
         } catch (error) {
-            Logger.EventFileParseError(eventPath);
+            throw new EventFileError(eventPath);
         }
 
         // Determine the event type
@@ -62,7 +64,7 @@ export default class EventInfo implements IEventInfo
             this._event = event as ActionEvent;
         } else {
             // Invalid event
-            Logger.InvalidEventError(JSON.stringify(event, null, 2), 1);
+            throw new InvalidEventError(JSON.stringify(event, null, 2));
         }
     }
 
@@ -169,6 +171,6 @@ export default class EventInfo implements IEventInfo
         // istanbul ignore if
         if (this._octokit) return this._octokit;
 
-        Logger.ReferenceError("octokit", 1);
+        throw new ReferenceError("octokit");
     }
 }

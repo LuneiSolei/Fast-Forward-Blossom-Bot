@@ -5,8 +5,8 @@ import type IOptions from "../core/actionInfo/IOptions.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
-import Logger from "../core/logger/logger.js";
 import OctokitFactory from "../core/octokitFactory.js";
+import * as core from "@actions/core";
 
 export default class ActionInfo implements IActionInfo
 {
@@ -22,27 +22,27 @@ export default class ActionInfo implements IActionInfo
         eventInfo: new (options: IOptions, eventPath: string) => IEventInfo,
         repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo)
     {
-        Logger.Debug("Retrieving options...");
+        core.debug("Retrieving options...");
         this._options = new options;
 
         // Get basic info first
-        Logger.Debug("Retrieving basic event info...");
+        core.debug("Retrieving basic event info...");
         this._event = new eventInfo(this._options, process.env["GITHUB_EVENT_PATH"] as string);
-        Logger.Debug("Done!");
+        core.debug("Done!");
 
-        Logger.Debug("Retrieving basic pull request info...");
+        core.debug("Retrieving basic pull request info...");
         const newPrInfo = new prInfo();
         newPrInfo.SetEvent(this._event.Event, this._event.EventType);
-        Logger.Debug("Done!");
+        core.debug("Done!");
 
-        Logger.Debug("Retrieving basic repository info...");
+        core.debug("Retrieving basic repository info...");
         this._repo = new repoInfo(newPrInfo, this._event.Event);
-        Logger.Debug("Done!");
+        core.debug("Done!");
 
         // Authenticate
-        Logger.Debug("Authenticating octokit instance...");
+        core.debug("Authenticating octokit instance...");
         this._octokit = octokit
-        Logger.Debug("Done!");
+        core.debug("Done!");
 
         // Get any authentication required info
         this._repo.Pr.FinishInitialization(this._octokit, this._event.Event, this._event.EventType)
@@ -58,7 +58,7 @@ export default class ActionInfo implements IActionInfo
         repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo,
     ): Promise<IActionInfo>
     {
-        Logger.Debug("Constructing new ActionInfo instance...");
+        core.debug("Constructing new ActionInfo instance...");
 
         // Create temporary instances to get repo info for authentication
         const tempOptions = new options();
