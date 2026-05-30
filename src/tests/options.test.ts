@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, test} from "@jest/globals";
 import type IOptions from "../core/actionInfo/IOptions.js";
 import Options from "../implements/options.js";
+import InvalidInputValueError from "../core/errors/invalidInputValueError.js";
 
 let subject: IOptions;
 
@@ -13,7 +14,7 @@ describe("Property Getters", () => {
     test("fails when post comment has an invalid value", async () => {
         const original = process.env["INPUT_POST_COMMENT"] as string;
         process.env["INPUT_POST_COMMENT"] = "anInvalidValue";
-        expect(() => new Options().PostComment).toThrow(TypeError);
+        expect(() => new Options().PostComment).toThrow(InvalidInputValueError);
         process.env["INPUT_POST_COMMENT"] = original;
     });
 

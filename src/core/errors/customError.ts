@@ -23,49 +23,20 @@ export default class CustomError extends Error
         const err = new Error();
         const lines = err.stack?.split("\n");
         const line = lines?.[depth + 2];
+
+        // istanbul ignore if
         if (!line) return {};
 
         const match = line.match(/\((.+):(\d+):(\d+)\)$/)
-            ?? line.match(/at (.+):(\d+):(\d+)$/);
+            ?? /* istanbul ignore next */ line.match(/at (.+):(\d+):(\d+)$/);
 
+        // istanbul ignore if
         if (!match) return {};
 
         return {
-            source: match[1] ?? "",
-            line: parseInt(match[2] ?? "", 10),
-            column: parseInt(match[3] ?? "", 10),
+            source: match[1] ?? /* istanbul ignore next */ "",
+            line: parseInt(match[2] ?? /* istanbul ignore next */ "", 10),
+            column: parseInt(match[3] ?? /* istanbul ignore next */ "", 10),
         }
-        // const original = Error.prepareStackTrace;
-        // Error.prepareStackTrace = (_, stack) => stack;
-        //
-        // const target = {} as {
-        //     stack: NodeJS.CallSite[]
-        // }
-        // Error.captureStackTrace(target, this.GetCallerInfo);
-        //
-        // const site = target.stack[depth];
-        // Error.prepareStackTrace = original;
-        //
-        // // istanbul ignore if
-        // if (!site) return {};
-        //
-        // const raw = {
-        //     source: site.getFileName() ?? null,
-        //     line: site.getLineNumber() ?? null,
-        //     column: site.getColumnNumber() ?? null
-        // };
-        //
-        // console.log(raw.source);
-        //
-        // // istanbul ignore if
-        // if (!raw.source) return {};
-        //
-        // // @ts-ignore
-        // const mapped = mapSourcePosition(raw);
-        // return {
-        //     source: mapped.source,
-        //     line: mapped.line,
-        //     column: mapped.column
-        // }
     }
 }
