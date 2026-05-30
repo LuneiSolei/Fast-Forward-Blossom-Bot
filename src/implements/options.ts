@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import type IOptions from "../core/actionInfo/IOptions.js";
-import {Logger} from "../core/logger/logger.js";
+import InvalidInputValueError from "../core/errors/invalidInputValueError.js";
 
 export default class Options implements IOptions {
     private static _options: core.InputOptions = {
@@ -35,7 +35,7 @@ export default class Options implements IOptions {
         this._postComment = core.getInput("post_comment", Options._options);
 
         if (this._postComment !== "always" && this._postComment !== "on-error" && this._postComment !== "never") {
-            Logger.InvalidWorkflowValueError("post_comment", this._postComment, 1);
+            throw new InvalidInputValueError("post_comment", this._postComment, "Input 'post_comment' can only be \"always\", \"on-error\", or \"never\"");
         }
 
         return this._postComment;

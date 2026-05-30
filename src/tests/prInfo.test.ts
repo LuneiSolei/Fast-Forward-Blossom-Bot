@@ -6,6 +6,7 @@ import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
 import path from "path";
 import * as fs from "node:fs";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 let subject: IPrInfo;
 let octokit: Octokit;
@@ -24,12 +25,12 @@ beforeEach(() => {
     let raw: string = fs.readFileSync(path.resolve(eventPath), "utf8");
     eventPullRequest = JSON.parse(raw);
 
-    // Create mock issue comment created event.
+    // Create mock issue comment created event
     eventPath = process.env["LOCAL_ISSUE_COMMENT_CREATED_EVENT_PATH"] as string;
     raw = fs.readFileSync(path.resolve(eventPath), "utf8");
     eventIssueCommentCreated = JSON.parse(raw);
 
-    //
+    // Create mock issue comment edited event
     eventPath = process.env["LOCAL_ISSUE_COMMENT_EDITED_EVENT_PATH"] as string;
     raw = fs.readFileSync(path.resolve(eventPath), "utf8");
     eventIssueCommentEdited = JSON.parse(raw);
@@ -44,21 +45,21 @@ describe("SetEvent()", () => {
         // Parse event
         subject.SetEvent(event, ActionEventType.IssueCommentCreated);
 
-        expect(() => subject.BaseRef).toThrow(ReferenceError);
-        expect(() => subject.BaseSha).toThrow(ReferenceError);
-        expect(() => subject.HeadRef).toThrow(ReferenceError);
-        expect(() => subject.HeadSha).toThrow(ReferenceError);
-        expect(() => subject.HeadLabel).toThrow(ReferenceError);
-        expect(() => subject.HeadRepo).toThrow(ReferenceError);
-        expect(() => subject.HeadOwner).toThrow(ReferenceError);
-        expect(() => subject.NodeId).toThrow(ReferenceError);
+        expect(() => subject.BaseRef).toThrow(UnknownReferenceError);
+        expect(() => subject.BaseSha).toThrow(UnknownReferenceError);
+        expect(() => subject.HeadRef).toThrow(UnknownReferenceError);
+        expect(() => subject.HeadSha).toThrow(UnknownReferenceError);
+        expect(() => subject.HeadLabel).toThrow(UnknownReferenceError);
+        expect(() => subject.HeadRepo).toThrow(UnknownReferenceError);
+        expect(() => subject.HeadOwner).toThrow(UnknownReferenceError);
+        expect(() => subject.NodeId).toThrow(UnknownReferenceError);
     }
 
-    test("does not parse event properties when eventType is IssueCommentCreated", async () => {
+    test("fails to parse event properties when eventType is IssueCommentCreated", async () => {
         commonEvent(eventIssueCommentCreated);
     });
 
-    test("does not parse event properties when eventType is IssueCommentEdited", async () => {
+    test("fails to parse event properties when eventType is IssueCommentEdited", async () => {
         commonEvent(eventIssueCommentEdited);
     });
 

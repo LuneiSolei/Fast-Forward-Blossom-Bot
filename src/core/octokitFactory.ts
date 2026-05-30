@@ -2,8 +2,9 @@ import {Octokit} from "@octokit/core";
 import {createAppAuth} from "@octokit/auth-app";
 import fs from "node:fs";
 import * as core from "@actions/core";
-import AppNotInstalledError from "./logger/appNotInstalledError.js";
-import InvalidInstallationTokenError from "./logger/invalidInstallationTokenError.js";
+import AppNotInstalledError from "./errors/appNotInstalledError.js";
+import InvalidInstallationTokenError from "./errors/invalidInstallationTokenError.js";
+import OctokitInitError from "./errors/OctokitInitError.js";
 
 export default class OctokitFactory
 {
@@ -24,8 +25,7 @@ export default class OctokitFactory
                 }
             });
         } catch (error) {
-            console.error(error);
-            throw error;
+            throw new OctokitInitError((error as Error).message);
         }
 
         core.debug(`Getting installation key for ${owner}'s ${repoName}`);
@@ -38,7 +38,7 @@ export default class OctokitFactory
                 { owner, repo: repoName }
             );
         } catch (error) {
-            throw new AppNotInstalledError(owner, repoName);
+            throw new AppNotInstalledError(owner, repoName, (error as Error).message);
         }
 
         // Exchange installation ID for installation token
@@ -52,10 +52,10 @@ export default class OctokitFactory
         try {
             authRes = await appAuth({type: "installation"})
         } catch(error) {
-            throw new InvalidInstallationTokenError();
+            throw new InvalidInstallationTokenError((error as Error).message);
         }
 
-        if (!authRes.token) throw new InvalidInstallationTokenError();
+        if (!authRes.token) throw new InvalidInstallationTokenError("No token provided by Octokit response.");
 
         // Authenticate as app
         octokit = new Octokit({ auth: authRes.token });

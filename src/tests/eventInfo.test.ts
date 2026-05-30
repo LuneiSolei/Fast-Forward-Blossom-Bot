@@ -7,6 +7,7 @@ import path from "path";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 let subject: IEventInfo;
 
@@ -222,5 +223,5 @@ describe("when event type is IssueCommentEdited", () => {
 test("octokit getter throws when not available", () => {
     const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
     subject = new EventInfo(new Options(), eventPath);
-    expect(() => (subject as any).Octokit).toThrow(ReferenceError)
+    expect(() => (subject as any).Octokit).toThrow(UnknownReferenceError)
 });

@@ -14,9 +14,9 @@ import type {
     IssueCommentEditedEvent,
     PullRequestOpenedEvent
 } from "@octokit/webhooks-types";
-import EventFileError from "../core/logger/eventFileError.js";
-import InvalidEventError from "../core/logger/invalidEventError.js";
-import ReferenceError from "../core/logger/referenceError.js";
+import EventFileError from "../core/errors/eventFileError.js";
+import InvalidEventError from "../core/errors/invalidEventError.js";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 export default class EventInfo implements IEventInfo
 {
@@ -41,7 +41,7 @@ export default class EventInfo implements IEventInfo
         try {
             event = JSON.parse(raw);
         } catch (error) {
-            throw new EventFileError(eventPath);
+            throw new EventFileError(eventPath, (error as Error).message);
         }
 
         // Determine the event type
@@ -64,7 +64,7 @@ export default class EventInfo implements IEventInfo
             this._event = event as ActionEvent;
         } else {
             // Invalid event
-            throw new InvalidEventError(JSON.stringify(event, null, 2));
+            throw new InvalidEventError(JSON.stringify(event, null, 2), "This event is either not supported or improperly formatted");
         }
     }
 
@@ -171,6 +171,6 @@ export default class EventInfo implements IEventInfo
         // istanbul ignore if
         if (this._octokit) return this._octokit;
 
-        throw new ReferenceError("octokit");
+        throw new UnknownReferenceError("octokit", "Property 'Octokit' is not initialized");
     }
 }

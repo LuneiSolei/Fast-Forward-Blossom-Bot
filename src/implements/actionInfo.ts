@@ -72,16 +72,6 @@ export default class ActionInfo implements IActionInfo
         return new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
     }
 
-    public static async CreateWithOctokit(
-        octokit: Octokit,
-        prInfo: new () => IPrInfo,
-        options: new () => IOptions,
-        eventInfo: new (options: IOptions, eventPath: string) => IEventInfo,
-        repoInfo: new (prInfo: IPrInfo, event: ActionEvent) => IRepoInfo
-    ): Promise<IActionInfo> {
-        return new ActionInfo(octokit, prInfo, options, eventInfo, repoInfo);
-    }
-
     public get Octokit(): Octokit {
         return this._octokit;
     }

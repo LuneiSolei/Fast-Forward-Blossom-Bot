@@ -10,7 +10,7 @@ import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
-import ReferenceError from "../core/logger/referenceError.js";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 export default class PrInfo implements IPrInfo
 {
@@ -135,50 +135,50 @@ export default class PrInfo implements IPrInfo
     public get BaseRef(): string {
         if (this._baseRef) return this._baseRef;
 
-        throw new ReferenceError("BaseRef");
+        throw new UnknownReferenceError("BaseRef", "Property 'BaseRef' is uninitialized");
     }
 
     public get BaseSha(): string {
         if (this._baseSha) return this._baseSha;
 
-        throw new ReferenceError("BaseSha");
+        throw new UnknownReferenceError("BaseSha", "Property 'BaseSha' is uninitialized");
     }
 
     public get HeadRef(): string {
         if (this._headRef) return this._headRef;
 
-        throw new ReferenceError("HeadRef");
+        throw new UnknownReferenceError("HeadRef", "Property 'HeadRef' is uninitialized");
     }
 
     public get HeadSha(): string {
         if (this._headSha) return this._headSha;
 
-        throw new ReferenceError("HeadSha");
+        throw new UnknownReferenceError("HeadSha", "Property 'HeadSha' is uninitialized");
     }
 
     public get HeadLabel(): string {
         if (this._headLabel) return this._headLabel;
 
-        throw new ReferenceError("HeadLabel");
+        throw new UnknownReferenceError("HeadLabel", "Property 'HeadLabel' is uninitialized");
     }
 
     public get NodeId(): string {
         if (this._nodeId) return this._nodeId;
 
-        throw new ReferenceError("NodeId");
+        throw new UnknownReferenceError("NodeId", "Property 'NodeId' is uninitialized");
     }
 
     public get HeadOwner(): string
     {
         if (this._headOwner) return this._headOwner;
 
-        throw new ReferenceError("HeadOwner");
+        throw new UnknownReferenceError("HeadOwner", "Property 'HeadOwner' is uninitialized");
     }
 
     public get HeadRepo(): string
     {
         if (this._headRepo) return this._headRepo;
 
-        throw new ReferenceError("HeadRepo");
+        throw new UnknownReferenceError("HeadRepo", "Property 'HeadRepo' is uninitialized");
     }
 }
