@@ -1,14 +1,14 @@
 import * as core from "@actions/core";
 import ActionInfo from "../implements/actionInfo.js";
-import CommentFormatter from "../implements/commentFormatter.js";
+import CommentBuilder from "../implements/commentBuilder.js";
 import Git from "../core/git.js";
 import {execFile} from "node:child_process";
-import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import PrInfo from "../implements/prInfo.js";
 import Options from "../implements/options.js";
 import EventInfo from "../implements/eventInfo.js";
 import RepoInfo from "../implements/repoInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
+import ApiCaller from "../implements/apiCaller.js";
 
 export default class Main
 {
@@ -27,7 +27,7 @@ export default class Main
             Options,
             EventInfo,
             RepoInfo
-        )
+        );
 
         // Was custom command invoked?
         if (info.Event.CommandInvoked)
@@ -39,39 +39,12 @@ export default class Main
         // Clone the repo locally
         Git.CloneRepo(info.Repo.CloneUrl);
 
-        // Verify state
-        // TODO: rewrite comment formatting code
-        const commentFormatter = new CommentFormatter(info.Repo.Pr);
+        // Create comment
+        const comment= await new CommentBuilder(info, ApiCaller.GetCommit).Build();
 
-        commentFormatter.AddVerifyingLine(info.Options.AutoMerge);
-        await commentFormatter.AddShellBlocks(info.Octokit, info.Repo);
-
-        if (!info.Event.GetIsPossible)
+        if (info.Options.PostComment == "always" || "on-error")
         {
-            // Fast-forward is not possible
-            commentFormatter.AddNotPossibleLines(info.Repo.Pr);
-            info.Event.ShouldExit = true;
-        }
-        else if (!info.Options.AutoMerge)
-        {
-            // Fast-forward is possible, but auto_merge is disabled
-            commentFormatter.AddAutoMergeDisabledLine();
-            info.Event.ShouldExit = true;
-        }
-        else if (!info.Event.GetUserHasPerms)
-        {
-            // User does not have proper permission(s)
-            commentFormatter.AddNoPermsLine(info.Repo);
-            info.Event.ShouldExit = true;
-        }
-        else if (!info.Event.CommandInvoked && info.Event.EventType === ActionEventType.PullRequestOpened) {
-            // This is a pull request opened event, but the command was not invoked.
-            commentFormatter.AddCommandNotInvokedLine(info.Options.CustomCommand);
-            info.Event.ShouldExit = true;
-        }
-
-        if (info.Options.PostComment == "always" || "on-error") {
-            await commentFormatter.PostComment(info.Octokit, info.Repo.Pr.NodeId);
+            await ApiCaller.PostComment(info.Repo.Pr.NodeId, comment);
         }
 
         this.Cleanup();
