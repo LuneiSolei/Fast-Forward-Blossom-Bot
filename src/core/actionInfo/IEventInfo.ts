@@ -1,9 +1,11 @@
 import type {ActionEventType} from "../actionEvent/actionEventType.js";
 import type IRepoInfo from "./IRepoInfo.js";
 import type {ActionEvent} from "../actionEvent/actionEvent.js";
+import type IApiCaller from "./IApiCaller.js";
 
 export default interface IEventInfo
 {
+    set ApiCaller(value: IApiCaller);
     get ShouldExit(): boolean;
     set ShouldExit(value: boolean);
     GetUserHasPerms: (repo: IRepoInfo) => Promise<boolean>;

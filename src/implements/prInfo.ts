@@ -5,12 +5,12 @@ import type {
 } from "@octokit/webhooks-types";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import * as core from "@actions/core";
-import type {Octokit} from "@octokit/core";
-import type {IGraphQLPrResponse} from "../core/githubApi/IGraphQLPrResponse.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 import Git from "../core/git.js";
 import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
+import type IApiCaller from "../core/actionInfo/IApiCaller.js";
+import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";
 
 export default class PrInfo implements IPrInfo
 {
@@ -54,7 +54,7 @@ export default class PrInfo implements IPrInfo
     }
 
     public async FinishInitialization(
-        octokit: Octokit,
+        apiCaller: IApiCaller,
         event: ActionEvent,
         eventType: ActionEventType): Promise<void>
     {
@@ -64,37 +64,35 @@ export default class PrInfo implements IPrInfo
                 return;
             case ActionEventType.IssueCommentCreated:
                 event = event as IssueCommentCreatedEvent;
-                if (!event.issue.pull_request || event.action !== "created") return;
+                if (!event.issue.pull_request
+                    || Object.keys(event.issue.pull_request).length === 0)
+                {
+                    core.info("Event is IssueCommentCreated, but pull_request is either empty, null, or undefined. Skipping...");
+                    core.debug(`Received: ${JSON.stringify(event.issue.pull_request)}`);
+                    return;
+                }
 
                 break;
             case ActionEventType.IssueCommentEdited:
                 event = event as IssueCommentEditedEvent;
 
                 // istanbul ignore else
-                if (!event.issue.pull_request || event.action !== "edited") return;
+                if (!event.issue.pull_request
+                    || Object.keys(event.issue.pull_request).length === 0)
+                {
+                    core.info("Event is IssueCommentEdited, but pull_request is either empty, null, or undefined. Skipping...");
+                    core.debug(`Received: ${JSON.stringify(event.issue.pull_request)}`);
+                    return;
+                }
         }
 
         // Retrieve the pull request info via api call
         const number: number = event.issue.number
-        const res: IGraphQLPrResponse = await octokit.graphql(`
-            query($owner: String!, $repoName: String!, $number: Int!) {
-                repository(owner: $owner, name: $repoName) {
-                    pullRequest(number: $number) {
-                        baseRefName
-                        baseRefOid
-                        headRefName
-                        headRefOid
-                        headRepository {
-                            name
-                        }
-                        headRepositoryOwner {
-                            login
-                        }
-                        id
-                    }
-                }
-            }
-        `, { owner: event.repository.owner.login, repoName: event.repository.name, number });
+        const res: IGraphQlPrResponse = await apiCaller.GetPullRequest(
+            event.repository.owner.login,
+            event.repository.name,
+            number
+        );
 
         const pr = res.repository.pullRequest;
         this._baseRef = pr.baseRefName;

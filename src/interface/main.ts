@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import ActionInfo from "../implements/actionInfo.js";
 import CommentBuilder from "../implements/commentBuilder.js";
 import Git from "../core/git.js";
 import {execFile} from "node:child_process";
@@ -9,6 +8,7 @@ import EventInfo from "../implements/eventInfo.js";
 import RepoInfo from "../implements/repoInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
 import ApiCaller from "../implements/apiCaller.js";
+import ActionInfoFactory from "../implements/actionInfoFactory.js";
 
 export default class Main
 {
@@ -22,11 +22,12 @@ export default class Main
             process.exit(1);
         }
 
-        let info: IActionInfo = await ActionInfo.Create(
+        let info: IActionInfo = await ActionInfoFactory.Create(
             PrInfo,
             Options,
             EventInfo,
-            RepoInfo
+            RepoInfo,
+            ApiCaller
         );
 
         // Was custom command invoked?
@@ -40,11 +41,11 @@ export default class Main
         Git.CloneRepo(info.Repo.CloneUrl);
 
         // Create comment
-        const comment= await new CommentBuilder(info, ApiCaller.GetCommit).Build();
+        const comment= await new CommentBuilder(info, info.ApiCaller.GetCommit).Build();
 
         if (info.Options.PostComment == "always" || "on-error")
         {
-            await ApiCaller.PostComment(info.Repo.Pr.NodeId, comment);
+            await info.ApiCaller.PostComment(info.Repo.Pr.NodeId, comment);
         }
 
         this.Cleanup();

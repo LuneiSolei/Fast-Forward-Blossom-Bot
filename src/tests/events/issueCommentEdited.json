@@ -10,7 +10,12 @@
         "name": "Fast-Forward-Blossom-Bot-Tests"
     },
     "issue": {
-        "number": 42,
-        "pull_request": {}
+        "number": 43,
+        "pull_request": {
+            "html_url": "someUrl"
+        }
+    },
+    "sender": {
+        "login": "luneisolei"
     }
 }

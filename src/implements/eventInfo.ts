@@ -3,9 +3,6 @@ import path from "path";
 import * as fs from "node:fs";
 import * as core from "@actions/core";
 import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
-import type {Octokit} from "@octokit/core";
-import type {IGraphQLCompareResponse} from "../core/githubApi/IGraphQLCompareResponse.js";
-import type RepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IOptions from "../core/actionInfo/IOptions.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
@@ -16,6 +13,8 @@ import type {
 } from "@octokit/webhooks-types";
 import EventFileError from "../core/errors/eventFileError.js";
 import InvalidEventError from "../core/errors/invalidEventError.js";
+import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 export default class EventInfo implements IEventInfo
@@ -23,25 +22,37 @@ export default class EventInfo implements IEventInfo
     private readonly _eventActionMap: Map<string, { check: () => boolean, type: ActionEventType }> = new Map();
     private _options: IOptions;
 
+    // istanbul ignore next
+    private _apiCaller?: IApiCaller;
+
+    // istanbul ignore next
+    public get ApiCaller(): IApiCaller
+    {
+        if (this._apiCaller) return this._apiCaller;
+
+        throw new UnknownReferenceError("ApiCaller", "Property 'ApiCaller' is uninitialized")
+    }
+
+    // istanbul ignore next
+    public set ApiCaller(value: IApiCaller)
+    {
+        this._apiCaller = value;
+    }
+
     private readonly _event: ActionEvent;
     public get Event(): ActionEvent
     {
-        return this._event;
+        if (this._event) return this._event;
+
+        throw new UnknownReferenceError("Event", "Property 'Event' is uninitialized");
     }
 
     private readonly _eventType!: ActionEventType;
     public get EventType(): ActionEventType
     {
-        return this._eventType;
-    }
+        if (this._eventType) return this._eventType;
 
-    private _octokit?: Octokit = undefined;
-    private get Octokit(): Octokit
-    {
-        // istanbul ignore if
-        if (this._octokit) return this._octokit;
-
-        throw new UnknownReferenceError("octokit", "Property 'Octokit' is not initialized");
+        throw new UnknownReferenceError("EventType", "Property 'EventType' is uninitialized");
     }
 
     private _commandInvoked?: boolean;
@@ -50,14 +61,6 @@ export default class EventInfo implements IEventInfo
         // istanbul ignore if
         if (this._commandInvoked)
             return this._commandInvoked;
-
-        // Check if event is relevant type
-        if (this.EventType !== ActionEventType.IssueCommentCreated
-            && this.EventType !== ActionEventType.IssueCommentEdited)
-        {
-            this._commandInvoked = false;
-            return this._commandInvoked;
-        }
 
         this._commandInvoked = (this.CommentBody?.trim() === this._options.CustomCommand);
 
@@ -92,11 +95,11 @@ export default class EventInfo implements IEventInfo
         if (this._isPossible) return this._isPossible;
 
         core.info("Determining if fast-forward is possible...");
-        const res: IApiCompareResponse = await this.Octokit.request("GET /repos/{owner}/{repo}/compare/{basehead}", {
-            owner: repo.Owner,
-            repo: repo.Name,
-            basehead: `${repo.Pr.BaseSha}...${repo.Pr.HeadLabel}`
-        });
+        const res: IApiCompareResponse = await this.ApiCaller.GetBaseHeadComparison(
+            repo.Owner,
+            repo.Name,
+            repo.Pr.BaseSha,
+            repo.Pr.HeadLabel);
         this._isPossible = res.data.status === "ahead";
 
         return this._isPossible;
@@ -108,19 +111,14 @@ export default class EventInfo implements IEventInfo
         // istanbul ignore if
         if (this._userHasPerms) return this._userHasPerms;
 
-        if (repo.Owner === repo.User) {
+        if (repo.Owner === this.User) {
             // User is owner
             this._userHasPerms = true;
         } else {
-            const res: IGraphQLCompareResponse = await this.Octokit.graphql(`
-                query($owner: String!, $repoName: String!, $user: String!) {
-                    repository(owner: $owner, name: $repoName) {
-                        collaborators(login: $user) {
-                            totalCount
-                        }
-                    }
-                }
-            `, { owner: repo.Owner, repoName: repo.Name, user: repo.User });
+            const res = await this.ApiCaller.GetCollaborator(
+                repo.Owner,
+                repo.Name,
+                this.User);
 
             this._userHasPerms = res.repository.collaborators.totalCount > 0;
         }
@@ -128,11 +126,16 @@ export default class EventInfo implements IEventInfo
         return this._userHasPerms;
     }
 
+    // istanbul ignore next
     private _shouldExit: boolean = false;
+
+    // istanbul ignore next
     public get ShouldExit(): boolean
     {
         return this._shouldExit;
     }
+
+    // istanbul ignore next
     public set ShouldExit(value: boolean) {
         this._shouldExit = value;
     }

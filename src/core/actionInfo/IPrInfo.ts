@@ -1,11 +1,11 @@
-import type {Octokit} from "@octokit/core";
 import type {ActionEventType} from "../actionEvent/actionEventType.js";
 import type {ActionEvent} from "../actionEvent/actionEvent.js";
+import type IApiCaller from "./IApiCaller.js";
 
 export default interface IPrInfo
 {
     FinishInitialization(
-        octokit: Octokit,
+        apiCaller: IApiCaller,
         event: ActionEvent,
         eventType: ActionEventType): Promise<void>;
     get BaseRef(): string;

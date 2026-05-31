@@ -1,38 +1,42 @@
-import {describe, expect, test} from "@jest/globals";
+import {beforeAll, describe, expect, test} from "@jest/globals";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import PrInfo from "../implements/prInfo.js";
-import Options from "../implements/options.js";
-import EventInfo from "../implements/eventInfo.js";
-import RepoInfo from "../implements/repoInfo.js";
 import ActionInfo from "../implements/actionInfo.js";
+import ActionInfoFactory from "../implements/actionInfoFactory.js";
+import TestFixtures from "./testFixtures.js";
 
 let subject: IActionInfo;
 
-subject = await ActionInfo.Create(
-    PrInfo,
-    Options,
-    EventInfo,
-    RepoInfo
-);
-
 test("Create() returns a constructed instance of ActionInfo", async () => {
+    subject = await ActionInfoFactory.Create(
+        TestFixtures.CreateMockPrInfo(),
+        TestFixtures.CreateMockOptions(),
+        TestFixtures.CreateMockEventInfo(),
+        TestFixtures.CreateMockRepoInfo(),
+        TestFixtures.CreateMockApiCaller(),
+        TestFixtures.CreateMockOctokit()
+    );
+
     expect(subject).toBeInstanceOf(ActionInfo);
 });
 
 describe("Getters", () => {
-    test("gets Octokit", async () => {
-        expect(subject.Octokit).toBeDefined();
+    beforeAll(async () => {
+        subject = await ActionInfoFactory.Create(
+            TestFixtures.CreateMockPrInfo(),
+            TestFixtures.CreateMockOptions(),
+            TestFixtures.CreateMockEventInfo(),
+            TestFixtures.CreateMockRepoInfo(),
+            TestFixtures.CreateMockApiCaller(),
+            TestFixtures.CreateMockOctokit()
+        );
     });
 
-    test("gets RepoInfo", async () => {
-        expect(subject.Repo).toBeDefined();
-    });
-
-    test("gets Options", async () => {
-        expect(subject.Options).toBeDefined();
-    });
-
-    test("gets eventInfo", async () => {
-        expect(subject.Event).toBeDefined();
+    test.each([
+        { label: "ApiCaller", get property() { return subject.ApiCaller }},
+        { label: "RepoInfo", get property() { return subject.Repo }},
+        { label: "Options", get property() { return subject.Options }},
+        { label: "EventInfo", get property() { return subject.Event }}
+    ])("gets $label", ({ property }) => {
+        expect(property).toBeDefined();
     });
 });

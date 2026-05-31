@@ -1,4 +1,4 @@
-export type IGraphQLCompareResponse = {
+export type IGraphQlCollaboratorResponse = {
     repository: {
         collaborators: {
             totalCount: number

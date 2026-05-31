@@ -1,15 +1,65 @@
 import type {Octokit} from "@octokit/core";
 import type {Commit} from "../core/commit.js";
+import type IApiCaller from "../core/actionInfo/IApiCaller.js";
+import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
+import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";
+import type {IGraphQlCollaboratorResponse} from "../core/githubApi/IGraphQlCollaboratorResponse.js";
 
-export default class ApiCaller
+export default class ApiCaller implements IApiCaller
 {
-    private static _octokit: Octokit;
-    public static set Octokit(value: Octokit)
+    private _octokit: Octokit;
+
+    public constructor(octokit: Octokit)
     {
-        this._octokit = value;
+        this._octokit = octokit;
     }
 
-    public static async PostComment(nodeId: string, comment: string)
+    public async GetPullRequest(owner: string, repoName: string, prNumber: number): Promise<IGraphQlPrResponse>
+    {
+        return await this._octokit.graphql(`
+            query($owner: String!, $repoName: String!, $prNumber: Int!) {
+                repository(owner: $owner, name: $repoName) {
+                    pullRequest(number: $prNumber) {
+                        baseRefName
+                        baseRefOid
+                        headRefName
+                        headRefOid
+                        headRepository {
+                            name
+                        }
+                        headRepositoryOwner {
+                            login
+                        }
+                        id
+                    }
+                }
+            }        
+        `, { owner, repoName, prNumber });
+    }
+
+    public async GetBaseHeadComparison(owner: string, repoName: string, baseSha: string, headLabel: string): Promise<IApiCompareResponse>
+    {
+        return await this._octokit.request("GET /repos/{owner}/{repo}/compare/{basehead}", {
+            owner: owner,
+            repo: repoName,
+            basehead: `${baseSha}...${headLabel}`
+        });
+    }
+
+    public async GetCollaborator(owner: string, repoName: string, user: string): Promise<IGraphQlCollaboratorResponse>
+    {
+        return await this._octokit.graphql(`
+                query($owner: String!, $repoName: String!, $user: String!) {
+                    repository(owner: $owner, name: $repoName) {
+                        collaborators(login: $user) {
+                            totalCount
+                        }
+                    }
+                }
+            `, { owner, repoName, user });
+    }
+
+    public async PostComment(nodeId: string, comment: string)
     {
         // Construct JSON comment
         await this._octokit.graphql(`
@@ -26,7 +76,7 @@ export default class ApiCaller
         });
     }
 
-    public static async GetCommit(owner: string, repoName: string, sha: string): Promise<Commit>
+    public async GetCommit(owner: string, repoName: string, sha: string): Promise<Commit>
     {
         return await this._octokit.graphql(`
             query($owner: String!, $repoName: String!, $sha: GitObjectID!) {
@@ -50,6 +100,6 @@ export default class ApiCaller
                     }
                 }
             }`,
-            { owner, repoName, sha });
+            {owner, repoName, sha});
     }
 }

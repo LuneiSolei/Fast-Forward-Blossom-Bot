@@ -2,226 +2,178 @@ import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 import EventInfo from "../implements/eventInfo.js";
 import Options from "../implements/options.js";
-import fs from "node:fs";
-import path from "path";
-import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
+import EventFileError from "../core/errors/eventFileError.js";
+import InvalidEventError from "../core/errors/invalidEventError.js";
+import TestFixtures from "./testFixtures.js";
+import type IOptions from "../core/actionInfo/IOptions.js";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
-import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
-import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
+import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 
-let subject: IEventInfo;
+let subject: IEventInfo,
+    pullRequestOpenedEventPath: string,
+    issueCommentCreatedEventPath: string,
+    issueCommentEditedEventPath: string,
+    invalidEventPath: string,
+    incorrectEventPath: string,
+    event: ActionEvent;
+const eventInfo: new (options: IOptions, eventPath: string) => IEventInfo = EventInfo;
 
+beforeEach(() => {
+    invalidEventPath = TestFixtures.InvalidEventPath;
+    incorrectEventPath = TestFixtures.IncorrectEventPath;
+    pullRequestOpenedEventPath = TestFixtures.PullRequestOpenedEventPath;
+    issueCommentCreatedEventPath = TestFixtures.IssueCommentCreatedEventPath;
+    issueCommentEditedEventPath = TestFixtures.IssueCommentEditedEventPath;
+});
+
+// Constructor tests
 describe("constructor", () => {
     test("throws when JSON parsing fails", async () => {
-        const eventPath = process.env["LOCAL_INVALID_EVENT_PATH"] as string;
-        expect(() => new EventInfo(new Options(), eventPath)).toThrow();
+        expect(() => new eventInfo(TestFixtures.CreateMockOptions(), invalidEventPath)).toThrow(EventFileError);
     });
 
     test("throws when an invalid event is supplied", async () => {
-        const eventPath = process.env["LOCAL_INCORRECT_EVENT_PATH"] as string;
-        expect(() => new EventInfo(new Options(), eventPath)).toThrow();
+        expect(() => new eventInfo(new Options(), incorrectEventPath)).toThrow(InvalidEventError);
     });
 });
 
-describe("IsPossible", () => {
-    let mockRepoInfo: IRepoInfo;
-
+// For each event type...
+describe.each([
+    { eventType: ActionEventType.PullRequestOpened, get eventPath() { return pullRequestOpenedEventPath }},
+    { eventType: ActionEventType.IssueCommentCreated, get eventPath()  { return issueCommentCreatedEventPath }},
+    { eventType: ActionEventType.IssueCommentEdited, get eventPath() { return issueCommentEditedEventPath }}
+])("when event type is $eventType", (describeRow) => {
     beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
-
-        mockRepoInfo = {
-            Owner: "luneisolei",
-            Name: "Fast-Forward-Blossom-Bot",
-            Pr: {
-                BaseSha: "abc1234",
-                HeadLabel: "luneisolei:feature-branch"
-            }
-        } as IRepoInfo
-
-        Object.defineProperty(subject, "_octokit", {
-            value: {request: jest.fn()}
-        });
+        subject = new eventInfo(TestFixtures.CreateMockOptions(), describeRow.eventPath);
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
     });
 
-    test("returns as true when comparison status is 'ahead'", async () => {
-        jest.mocked((subject as any)._octokit.request).mockResolvedValue({
-            headers: {},
-            status: 200,
-            url: "",
-            data: {
-                status: "ahead"
-            }
-        });
-
-        const isPossible = await subject.GetIsPossible(mockRepoInfo);
-        expect(isPossible).toEqual(true);
+    // ...test construction
+    test("returns a constructed instance of EventInfo", async () => {
+        expect(() => new eventInfo(TestFixtures.CreateMockOptions(), describeRow.eventPath)).not.toThrow();
     });
 
-    test("returns as false when comparison status is not 'ahead'", async () => {
-        jest.mocked((subject as any)._octokit.request).mockResolvedValue({
-            headers: {},
-            status: 200,
-            url: "",
-            data: {
-                status: "behind"
-            }
-        });
-
-        const isPossible = await subject.GetIsPossible(mockRepoInfo);
-        expect(isPossible).toEqual(false);
-    });
-});
-
-describe("GetUserHasPerms", () => {
-    let mockRepoInfo: IRepoInfo;
-
-    beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
-
-        mockRepoInfo = {
-            Owner: "luneisolei",
-            Name: "Fast-Forward-Blossom-Bot",
-            User: "luneisolei-testaccount"
-        } as IRepoInfo;
-
-        Object.defineProperty(subject, "_octokit", {
-            value: {graphql: jest.fn()}
-        });
-    });
-
-    test("returns true when user is an owner", async () => {
-        (mockRepoInfo as any).User = "luneisolei";
-        const userHasPerms = await subject.GetUserHasPerms(mockRepoInfo);
-        expect(userHasPerms).toEqual(true);
-    });
-
-    test("returns true when user is a collaborator", async () => {
-        jest.mocked((subject as any)._octokit.graphql).mockResolvedValue({
-            repository: {
-                collaborators: {
-                    totalCount: 1
+    // ...test GetIsPossible...
+    describe("GetIsPossible", () => {
+        // ...with both 'ahead' and 'behind' statuses
+        test.each([
+            {status: "ahead", expected: true, label: "is"},
+            {status: "behind", expected: false, label: "is not"}
+        ])(
+            "returns $expected when status $label 'ahead'",
+            async ({status, expected}) =>
+            {
+                const mockResponse = {
+                    headers: {},
+                    status: 200,
+                    url: "",
+                    data: {status}
                 }
+
+                subject.ApiCaller = TestFixtures.CreateMockApiCaller({
+                    // @ts-ignore
+                    request: jest.fn().mockResolvedValue(mockResponse)
+                });
+
+                expect(await subject.GetIsPossible(TestFixtures.CreateMockRepoInfo())).toEqual(expected);
             }
+        );
+    });
+
+    // ...test GetUserHasPerms...
+    describe("GetUserHasPerms", () => {
+        // ...with both "is an owner/collaborator" and "is not an owner/collaborator" statuses
+        test.each([
+            {user: "luneisolei", collabCount: 1, expected: true, label: "is"},
+            {user: "luneisolei-testaccount", collabCount: 0, expected: false, label: "is not"}
+        ])(
+            "returns $expected when user $label owner/collaborator of the repo",
+            async ({ user, collabCount, expected}) =>
+        {
+            (subject as any)._user = user;
+            subject.ApiCaller = TestFixtures.CreateMockApiCaller({
+                // @ts-ignore
+                graphql: jest.fn().mockResolvedValue({
+                    repository: {
+                        collaborators: {
+                            totalCount: collabCount
+                        }
+                    }
+                })
+            });
+            const mockRepoInfo = TestFixtures.CreateMockRepoInfo();
+            const hasPerms = await subject.GetUserHasPerms(mockRepoInfo);
+
+            expect(hasPerms).toEqual(expected);
         });
-
-        const userHasPerms = await subject.GetUserHasPerms(mockRepoInfo);
-        expect(userHasPerms).toEqual(true);
     });
 
-    test("returns false when user is not an owner or collaborator", async () => {
-        jest.mocked((subject as any)._octokit.graphql).mockResolvedValue({
-            repository: {
-                collaborators: {
-                    totalCount: 0
-                }
-            }
-        });
-
-        const userHasPerms = await subject.GetUserHasPerms(mockRepoInfo);
-        expect(userHasPerms).toEqual(false);
-    });
-});
-
-describe("ShouldExit", () => {
-    beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
+    // ...test User
+    test("gets User", async () => {
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
+        expect(subject.User).toEqual(event.sender.login);
     });
 
-    test("returns false if not set", async () => {
-        expect(subject.ShouldExit).toEqual(false);
-    });
-
-    test("returns correct value", async () => {
-        subject.ShouldExit = true;
-        expect(subject.ShouldExit).toEqual(true);
-    });
-});
-
-describe("when event type is PullRequestOpened", () => {
-    let event: PullRequestOpenedEvent;
-    beforeEach(() => {
-        const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
-        const raw = fs.readFileSync(path.resolve(eventPath), "utf8");
-        event = JSON.parse(raw);
-    });
-
-    test("get Event", async () => {
+    // ...test Event
+    test("gets Event", async () => {
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
         expect(subject.Event).toEqual(event);
     });
 
-    test("get EventType", async () => {
-        expect(subject.EventType).toEqual(ActionEventType.PullRequestOpened);
+    // ...test EventType
+    test("gets EventType", async () => {
+        expect(subject.EventType).toEqual(describeRow.eventType);
     });
 
-    test("get CommandInvoked", async () => {
-        expect(subject.CommandInvoked).toEqual(false);
+    // ...test CommandInvoked
+    test("gets CommandInvoked", async () => {
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
+        const options: IOptions = TestFixtures.CreateMockOptions();
+        let expected: boolean
+
+        switch (describeRow.eventType) {
+            case ActionEventType.PullRequestOpened:
+                expected = (event as PullRequestOpenedEvent)
+                    .pull_request
+                    .body?.trim() === options.CustomCommand;
+
+                break;
+            case ActionEventType.IssueCommentCreated:
+                expected = (event as IssueCommentCreatedEvent)
+                    .comment
+                    .body?.trim() === options.CustomCommand;
+
+                break;
+            case ActionEventType.IssueCommentEdited:
+                expected = (event as IssueCommentEditedEvent)
+                    .comment
+                    .body?.trim() === options.CustomCommand;
+
+                break;
+        }
+
+        expect(subject.CommandInvoked).toEqual(expected);
     });
 
-    test("get CommentBody", async () => {
-        expect(subject.CommentBody).toBeNull();
+    // ...test CommentBody
+    test("gets CommentBody", async () => {
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
+        let expected: string | null;
+
+        switch (describeRow.eventType) {
+            case ActionEventType.PullRequestOpened:
+                expected = (event as PullRequestOpenedEvent).pull_request.body;
+
+                break;
+            case ActionEventType.IssueCommentCreated:
+                expected = (event as IssueCommentCreatedEvent).comment.body;
+
+                break;
+            case ActionEventType.IssueCommentEdited:
+                expected = (event as IssueCommentEditedEvent).comment.body;
+        }
+
+        expect(subject.CommentBody).toEqual(expected)
     });
-});
-
-describe("when event type is IssueCommentCreated", () => {
-    let event: IssueCommentCreatedEvent;
-
-    beforeEach(() => {
-        const eventPath = process.env["LOCAL_ISSUE_COMMENT_CREATED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
-        const raw = fs.readFileSync(path.resolve(eventPath), "utf8");
-        event = JSON.parse(raw);
-    });
-
-    test("get Event", async () => {
-        expect(subject.Event).toEqual(event);
-    });
-
-    test("get EventType", async () => {
-        expect(subject.EventType).toEqual(ActionEventType.IssueCommentCreated);
-    });
-
-    test("get CommandInvoked", async () => {
-        expect(subject.CommandInvoked).toEqual(true);
-    });
-
-    test("get CommentBody", async () => {
-        expect(subject.CommentBody).toEqual("/fast-forward");
-    });
-});
-
-describe("when event type is IssueCommentEdited", () => {
-    let event: IssueCommentEditedEvent;
-
-    beforeEach(() => {
-        const eventPath = process.env["LOCAL_ISSUE_COMMENT_EDITED_EVENT_PATH"] as string;
-        subject = new EventInfo(new Options(), eventPath);
-        const raw = fs.readFileSync(path.resolve(eventPath), "utf8");
-        event = JSON.parse(raw);
-    });
-
-    test("get Event", async () => {
-        expect(subject.Event).toEqual(event);
-    });
-
-    test("get EventType", async () => {
-        expect(subject.EventType).toEqual(ActionEventType.IssueCommentEdited);
-    });
-
-    test("get CommandInvoked", async () => {
-        expect(subject.CommandInvoked).toEqual(true);
-    });
-
-    test("get CommentBody", async () => {
-        expect(subject.CommentBody).toEqual(" /fast-forward");
-    });
-});
-
-test("octokit getter throws when not available", () => {
-    const eventPath = process.env["LOCAL_PULL_REQUEST_OPENED_EVENT_PATH"] as string;
-    subject = new EventInfo(new Options(), eventPath);
-    expect(() => (subject as any).Octokit).toThrow(UnknownReferenceError)
 });

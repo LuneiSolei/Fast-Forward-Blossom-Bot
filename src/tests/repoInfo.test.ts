@@ -37,9 +37,6 @@ describe("Property Getters", () => {
         expect(subject.Pr).toEqual(prInfo);
     });
 
-    test("gets username", async () => {
-        expect(subject.User).toEqual("luneisolei");
-    });
 
     test("gets repo owner", async () => {
         expect(subject.Owner).toEqual("luneisolei");

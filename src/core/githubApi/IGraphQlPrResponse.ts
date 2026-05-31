@@ -1,4 +1,4 @@
-export type IGraphQLPrResponse = {
+export type IGraphQlPrResponse = {
     repository: {
         pullRequest: {
             baseRefName: string,

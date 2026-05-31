@@ -11,6 +11,11 @@
     },
     "issue": {
         "number": 42,
-        "pull_request": {}
+        "pull_request": {
+            "html_url": ""
+        }
+    },
+    "sender": {
+        "login": "luneisolei"
     }
 }
