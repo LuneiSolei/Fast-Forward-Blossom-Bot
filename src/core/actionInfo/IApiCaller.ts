@@ -1,5 +1,5 @@
 import type {IApiCompareResponse} from "../githubApi/IApiCompareResponse.js";
-import type {Commit} from "../commit.js";
+import type {ICommit} from "../ICommit.js";
 import type {IGraphQlPrResponse} from "../githubApi/IGraphQlPrResponse.js";
 import type {IGraphQlCollaboratorResponse} from "../githubApi/IGraphQlCollaboratorResponse.js";
 

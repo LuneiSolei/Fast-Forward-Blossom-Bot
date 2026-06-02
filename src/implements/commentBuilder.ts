@@ -3,9 +3,10 @@ import Git from "../core/git.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import type {Commit} from "../core/commit.js";
+import type ICommit from "../core/ICommit.js";
+import type ICommentBuilder from "../core/ICommentBuilder.js";
 
-export default class CommentBuilder
+export default class CommentBuilder implements ICommentBuilder
 {
     private readonly _baseFullRef: string;
     private readonly _headFullRef: string;
@@ -23,7 +24,7 @@ export default class CommentBuilder
         this._commitGetter = commitGetter;
 
         this._baseFullRef = `${this._prInfo.BaseRef} (${this._prInfo.BaseSha})`
-        this._headFullRef = `${this._prInfo.HeadRef} (${this._prInfo.HeadRef})`
+        this._headFullRef = `${this._prInfo.HeadRef} (${this._prInfo.HeadSha})`
     }
 
     public async Build(): Promise<string>
@@ -167,7 +168,7 @@ export default class CommentBuilder
         // Get commit info
         core.debug(`Querying ${owner}/${repoName} (${sha})`);
 
-        const res: Commit = await this._commitGetter(owner, repoName, sha);
+        const res: ICommit = await this._commitGetter(owner, repoName, sha);
         const commit = res.repository.object;
         const headRefName: string = commit.associatedPullRequests.nodes.headRefName;
         const baseRefName: string = commit.associatedPullRequests.nodes.baseRefName;

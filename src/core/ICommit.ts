@@ -1,4 +1,4 @@
-export interface Commit
+export default interface ICommit
 {
     repository: {
         object: {

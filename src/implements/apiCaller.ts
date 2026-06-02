@@ -1,5 +1,5 @@
 import type {Octokit} from "@octokit/core";
-import type {Commit} from "../core/commit.js";
+import type {ICommit} from "../core/ICommit.js";
 import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
 import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";
@@ -76,7 +76,7 @@ export default class ApiCaller implements IApiCaller
         });
     }
 
-    public async GetCommit(owner: string, repoName: string, sha: string): Promise<Commit>
+    public async GetCommit(owner: string, repoName: string, sha: string): Promise<ICommit>
     {
         return await this._octokit.graphql(`
             query($owner: String!, $repoName: String!, $sha: GitObjectID!) {

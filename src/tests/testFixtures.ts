@@ -11,6 +11,8 @@ import path from "path";
 import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import ApiCaller from "../implements/apiCaller.js";
 import {Octokit} from "@octokit/core";
+import CommentBuilder from "../implements/commentBuilder.js";
+import EventInfo from "../implements/eventInfo.js";
 
 export default class TestFixtures
 {
@@ -19,6 +21,9 @@ export default class TestFixtures
     public static PullRequestOpenedEventPath = "./src/tests/events/pullRequestOpened.json";
     public static IssueCommentCreatedEventPath = "./src/tests/events/issueCommentCreated.json";
     public static IssueCommentEditedEventPath = "./src/tests/events/issueCommentEdited.json";
+
+    public static ConcreteCommentBuilder = CommentBuilder;
+    public static ConcreteEventInfo = EventInfo;
 
     public static ParseEventFile(eventPath: string): ActionEvent
     {
