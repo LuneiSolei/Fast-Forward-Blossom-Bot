@@ -21,10 +21,10 @@ test("post comment getter fails when post comment is an invalid value", async ()
 });
 
 test.each([
-    { label: "auto merge", get value() { return subject.AutoMerge }, expected: true },
-    { label: "custom command",  get value() { return subject.CustomCommand }, expected: "/fast-forward" },
-    { label: "post comment",  get value() { return subject.PostComment }, expected: "always" },
+    { label: "auto merge", value: () => { return subject.AutoMerge }, expected: true },
+    { label: "custom command",  value: () => { return subject.CustomCommand }, expected: "/fast-forward" },
+    { label: "post comment",  value: () => { return subject.PostComment }, expected: "always" },
 ])("gets $label", ({ value, expected }) => {
-    expect(value).toEqual(expected);
-    expect(value).toEqual(expected); // Perform twice to test if branch
+    expect(value()).toEqual(expected);
+    expect(value()).toEqual(expected); // Perform twice to test if branch
 });

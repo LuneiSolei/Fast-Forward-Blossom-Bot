@@ -18,6 +18,7 @@ export default interface IPrInfo
     get MergeBaseSha(): string;
     get MergeBaseParentsAmount(): number
     get NodeId(): string;
+    get IssueNumber(): number;
     SetEvent(
         event: ActionEvent,
         eventType: ActionEventType): void;

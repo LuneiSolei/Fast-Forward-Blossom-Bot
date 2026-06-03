@@ -6,7 +6,7 @@ import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 let subject: IActionInfo,
     actionInfoFactory: typeof TestFixtures.ConcreteActionInfoFactory;
 
-describe("Create()", () => {
+describe("Create() with premade instances", () => {
     beforeEach(() => {
         actionInfoFactory = TestFixtures.ConcreteActionInfoFactory;
     });
@@ -37,6 +37,22 @@ describe("Create()", () => {
     });
 });
 
+describe("Create() with constructors", () => {
+    beforeEach(() => {
+        actionInfoFactory = TestFixtures.ConcreteActionInfoFactory;
+    });
+
+    test("constructs using injected constructors", async () => {
+        await expect(actionInfoFactory.Create(
+            TestFixtures.ConcretePrInfo,
+            TestFixtures.ConcreteOptions,
+            TestFixtures.ConcreteEventInfo,
+            TestFixtures.ConcreteRepoInfo,
+            TestFixtures.ConcreteApiCaller,
+            TestFixtures.CreateMockOctokit()
+        )).resolves.not.toThrow();
+    })
+});
 
 describe("Getters", () => {
     beforeAll(async () => {

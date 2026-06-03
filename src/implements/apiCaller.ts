@@ -59,7 +59,7 @@ export default class ApiCaller implements IApiCaller
             `, { owner, repoName, user });
     }
 
-    public async PostComment(nodeId: string, comment: string)
+    public async PostComment(nodeId: string, comment: string): Promise<void>
     {
         // Construct JSON comment
         await this._octokit.graphql(`

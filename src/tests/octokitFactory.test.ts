@@ -70,13 +70,18 @@ describe("Create()", () => {
 
     test("throws when authentication fails", async () => {
         jest.unstable_mockModule("@octokit/core", () => {
-            return {
-                Octokit: class {
-                    constructor() {
-                        throw new Error("authentication test")
-                    }
-                }
-            }
+            const MockOctokit = jest.fn()
+                .mockImplementationOnce(() => ({
+                    // @ts-ignore
+                    request: jest.fn().mockResolvedValue({
+                        data: { id: "SomeInstallationId" }
+                    })
+                }))
+                .mockImplementationOnce(() => {
+                    throw new Error("authentication test");
+                });
+
+            return { Octokit: MockOctokit }
         });
 
         await import ("@octokit/core");

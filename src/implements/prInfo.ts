@@ -24,6 +24,7 @@ export default class PrInfo implements IPrInfo
     private _nodeId?: string;
     private _mergeBaseSha?: string;
     private _mergeBaseParentsAmount?: number;
+    private _issueNumber?: number;
 
     public SetEvent(
         event: ActionEvent,
@@ -40,6 +41,7 @@ export default class PrInfo implements IPrInfo
                 this._nodeId = event.pull_request.node_id;
                 this._headOwner = event.pull_request.head.repo?.owner.login || event.repository.owner.login
                 this._headRepo = event.pull_request.head.repo?.name || event.repository.name;
+                this._issueNumber = event.pull_request.number;
 
                 break;
             case ActionEventType.IssueCommentCreated:
@@ -87,11 +89,11 @@ export default class PrInfo implements IPrInfo
         }
 
         // Retrieve the pull request info via api call
-        const number: number = event.issue.number
+        this._issueNumber = event.issue.number
         const res: IGraphQlPrResponse = await apiCaller.GetPullRequest(
             event.repository.owner.login,
             event.repository.name,
-            number
+            this._issueNumber
         );
 
         const pr = res.repository.pullRequest;
@@ -114,6 +116,13 @@ export default class PrInfo implements IPrInfo
         this._mergeBaseParentsAmount = Git.GetAmountOfParents(this._mergeBaseSha);
 
         return { sha: this._mergeBaseSha, amountOfParents: this._mergeBaseParentsAmount };
+    }
+
+    public get IssueNumber(): number
+    {
+        if (this._issueNumber) return this._issueNumber
+
+        throw new UnknownReferenceError("IssueNumber", "Property 'IssueNumber' is uninitialized")
     }
 
     public get MergeBaseSha(): string

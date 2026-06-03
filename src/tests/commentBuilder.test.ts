@@ -179,7 +179,8 @@ describe("addCommandNotInvokedLine()", () => {
 });
 
 describe("addShellBlocks()", () => {
-    test("adds shell blocks containing all ref information", async () => {
+    async function commonExpects()
+    {
         const mockResponse = {
             repository: {
                 object: {
@@ -220,9 +221,18 @@ describe("addShellBlocks()", () => {
             `Date:   ${commit.committedDate}`
         );
         expect(comment).toContain(commit.message);
+    }
+    test("adds shell blocks containing all ref information", async () => {
+        await commonExpects();
     });
-});
 
-describe("createBlock()", () => {
+    test("handles HeadOwner being undefined", async () => {
+        (subject as any)._prInfo.HeadOwner = undefined;
+        await commonExpects();
+    });
 
+    test("handles HeadRepo being undefined", async () => {
+        (subject as any)._prInfo.HeadRepo = undefined;
+        await commonExpects();
+    });
 });

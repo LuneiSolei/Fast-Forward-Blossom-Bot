@@ -7,6 +7,7 @@ import type IOptions from "../core/actionInfo/IOptions.js";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 let subject: IEventInfo,
     pullRequestOpenedEventPath: string,
@@ -114,16 +115,33 @@ describe.each([
         expect(subject.User).toEqual(event.sender.login);
     });
 
+    test("retrieves user from 'sender' event info if _user is undefined", async () => {
+        event = TestFixtures.ParseEventFile(describeRow.eventPath);
+        (subject as any)._user = undefined;
+
+        expect(subject.User).toEqual(event.sender.login);
+    });
+
     // ...test Event
     test("gets Event", async () => {
         event = TestFixtures.ParseEventFile(describeRow.eventPath);
         expect(subject.Event).toEqual(event);
     });
 
+    test("throws when Event returns undefined", async () => {
+        (subject as any)._event = undefined;
+        expect(() => subject.Event).toThrow(UnknownReferenceError);
+    });
+
     // ...test EventType
     test("gets EventType", async () => {
         expect(subject.EventType).toEqual(describeRow.eventType);
     });
+
+    test("throws when EventType returns undefined", async () => {
+        (subject as any)._eventType = undefined;
+        expect(() => subject.EventType).toThrow(UnknownReferenceError);
+    })
 
     // ...test CommandInvoked
     test("gets CommandInvoked", async () => {

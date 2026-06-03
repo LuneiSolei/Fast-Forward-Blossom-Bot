@@ -17,6 +17,7 @@ import PrInfo from "../implements/prInfo.js";
 import ActionInfoFactory from "../implements/actionInfoFactory.js";
 import Options from "../implements/options.js";
 import RepoInfo from "../implements/repoInfo.js";
+import type ICommentBuilder from "../core/ICommentBuilder.js";
 
 export default class TestFixtures
 {
@@ -32,6 +33,7 @@ export default class TestFixtures
     public static ConcreteActionInfoFactory = ActionInfoFactory;
     public static ConcreteOptions = Options;
     public static ConcreteRepoInfo = RepoInfo;
+    public static ConcreteApiCaller = ApiCaller;
 
     public static ParseEventFile(eventPath: string): ActionEvent
     {
@@ -54,6 +56,7 @@ export default class TestFixtures
             NodeId: "some node id",
             FinishInitialization: jest.fn() as any,
             SetEvent: jest.fn(),
+            IssueNumber: 4,
             ...overrides
         }
     }
@@ -94,6 +97,32 @@ export default class TestFixtures
             CustomCommand: "/fast-forward",
             ...overrides
         }
+    }
+
+    public static CreateMockCommentBuilder(overrides?: Partial<IOptions>): ICommentBuilder
+    {
+        return {
+            Build: async () => "Here's a default test comment!",
+            ...overrides
+        }
+    }
+
+    public static async CreateMockActionInfoFromEventPath(eventPath: string): Promise<IActionInfo>
+    {
+        const original = process.env["GITHUB_EVENT_PATH"];
+        process.env["GITHUB_EVENT_PATH"] = eventPath;
+
+        const actionInfo = await ActionInfoFactory.Create(
+            this.CreateMockPrInfo({}),
+            this.CreateMockOptions({}),
+            this.CreateMockEventInfo({}),
+            this.CreateMockRepoInfo({}),
+            this.CreateMockApiCaller({}),
+            this.CreateMockOctokit({})
+        );
+        process.env["GITHUB_EVENT_PATH"] = original;
+
+        return actionInfo;
     }
 
     public static CreateMockActionInfo(overrides?: Partial<IActionInfo>): IActionInfo
