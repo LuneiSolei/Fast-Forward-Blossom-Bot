@@ -12,5 +12,6 @@ export default {
     },
     setupFiles: ['<rootDir>/jest.setup.ts'],
     collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
-    cacheDirectory: '<rootDir>/tmp/jest'
+    cacheDirectory: '<rootDir>/tmp/jest',
+    testTimeout: 5000
 };

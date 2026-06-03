@@ -1,5 +1,5 @@
 import type {Octokit} from "@octokit/core";
-import type {ICommit} from "../core/ICommit.js";
+import type ICommit from "../core/ICommit.js";
 import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
 import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";

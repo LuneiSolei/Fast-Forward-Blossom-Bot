@@ -1,23 +1,38 @@
 import {beforeAll, describe, expect, test} from "@jest/globals";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import ActionInfo from "../implements/actionInfo.js";
 import ActionInfoFactory from "../implements/actionInfoFactory.js";
 import TestFixtures from "./testFixtures.js";
+import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
 let subject: IActionInfo;
 
-test("Create() returns a constructed instance of ActionInfo", async () => {
-    subject = await ActionInfoFactory.Create(
-        TestFixtures.CreateMockPrInfo(),
-        TestFixtures.CreateMockOptions(),
-        TestFixtures.CreateMockEventInfo(),
-        TestFixtures.CreateMockRepoInfo(),
-        TestFixtures.CreateMockApiCaller(),
-        TestFixtures.CreateMockOctokit()
-    );
+describe("Create()", () => {
+    test("returns a constructed instance of ActionInfo", async () => {
+        await expect(async () => await ActionInfoFactory.Create(
+            TestFixtures.CreateMockPrInfo(),
+            TestFixtures.CreateMockOptions(),
+            TestFixtures.CreateMockEventInfo(),
+            TestFixtures.CreateMockRepoInfo(),
+            TestFixtures.CreateMockApiCaller(),
+            TestFixtures.CreateMockOctokit()
+        )).resolves.not.toThrow();
+    });
 
-    expect(subject).toBeInstanceOf(ActionInfo);
+    test("throws when GITHUB_EVENT_PATH environment variable is not set", async () => {
+        const original = process.env["GITHUB_EVENT_PATH"];
+        delete process.env["GITHUB_EVENT_PATH"];
+        await expect(ActionInfoFactory.Create(
+            TestFixtures.CreateMockPrInfo(),
+            TestFixtures.CreateMockOptions(),
+            TestFixtures.CreateMockEventInfo(),
+            TestFixtures.CreateMockRepoInfo(),
+            TestFixtures.CreateMockApiCaller(),
+            TestFixtures.CreateMockOctokit()
+        )).rejects.toThrow(UnknownReferenceError);
+        process.env["GITHUB_EVENT_PATH"] = original;
+    });
 });
+
 
 describe("Getters", () => {
     beforeAll(async () => {

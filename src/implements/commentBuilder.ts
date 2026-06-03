@@ -13,10 +13,10 @@ export default class CommentBuilder implements ICommentBuilder
     private readonly _actionInfo: IActionInfo;
     private readonly _prInfo: IPrInfo;
     private readonly _repoInfo: IRepoInfo;
-    private readonly _commitGetter: (owner: string, repoName: string, sha: string) => Promise<Commit>;
+    private readonly _commitGetter: (owner: string, repoName: string, sha: string) => Promise<ICommit>;
     private _comment: string[] = [];
 
-    public constructor(info: IActionInfo, commitGetter: (owner: string, repoName: string, sha: string) => Promise<Commit>)
+    public constructor(info: IActionInfo, commitGetter: (owner: string, repoName: string, sha: string) => Promise<ICommit>)
     {
         this._actionInfo = info;
         this._repoInfo = info.Repo;
@@ -29,38 +29,38 @@ export default class CommentBuilder implements ICommentBuilder
 
     public async Build(): Promise<string>
     {
-        this.AddVerifyingLine();
-        await this.AddShellBlocks();
+        this.addVerifyingLine();
+        await this.addShellBlocks();
 
         if (!await this._actionInfo.Event.GetIsPossible(this._repoInfo))
         {
             // Fast-forward is not possible
-            this.AddNotPossibleLines();
+            this.addNotPossibleLines();
             this._actionInfo.Event.ShouldExit = true;
         }
         else if (!this._actionInfo.Options.AutoMerge)
         {
             // Fast-forward is possible, but auto_merge is disabled
-            this.AddAutoMergeDisabledLine();
+            this.addAutoMergeDisabledLine();
             this._actionInfo.Event.ShouldExit = true;
         }
         else if (!await this._actionInfo.Event.GetUserHasPerms(this._repoInfo))
         {
             // Fast-forward is possible, but user does not have proper permissions
-            this.AddNoPermsLine();
+            this.addNoPermsLine();
             this._actionInfo.Event.ShouldExit = true;
         }
         else if (!this._actionInfo.Event.CommandInvoked)
         {
             // The command was not invoked
-            this.AddCommandNotInvokedLine();
+            this.addCommandNotInvokedLine();
             this._actionInfo.Event.ShouldExit = true;
         }
 
         return this._comment.join("\n");
     }
 
-    private AddVerifyingLine(): void
+    private addVerifyingLine(): void
     {
         let result: string;
         switch (this._actionInfo.Options.AutoMerge) {
@@ -76,29 +76,7 @@ export default class CommentBuilder implements ICommentBuilder
         this._comment.push(result);
     }
 
-    private async AddShellBlocks(): Promise<void>
-    {
-        let result: string[] = []
-
-        // Create the target shell block
-        result.push(`Target Branch (${this._prInfo.BaseRef}):`);
-        let owner = this._repoInfo.Owner;
-        let repoName = this._repoInfo.Name;
-        let sha = this._prInfo.BaseSha;
-        result.concat(await this.createBlock(owner, repoName, sha));
-
-        // Create the PR shell block
-        result.push(`Pull Request (${this._prInfo.HeadRef}):`);
-        owner = this._prInfo.HeadOwner || owner;
-        repoName = this._prInfo.HeadRepo || repoName;
-        sha = this._prInfo.HeadSha;
-        result.concat(await this.createBlock(owner, repoName, sha));
-
-        // Push the result to our stored comment
-        this._comment = this._comment.concat(result)
-    }
-
-    private AddNotPossibleLines(): void
+    private addNotPossibleLines(): void
     {
         let result: string[] = [];
 
@@ -135,7 +113,7 @@ export default class CommentBuilder implements ICommentBuilder
         this._comment = this._comment.concat(result);
     }
 
-    private AddAutoMergeDisabledLine(): void
+    private addAutoMergeDisabledLine(): void
     {
         this._comment.push(`It is possible to fast-forward ${this._baseFullRef} to ${this._headFullRef}, 
             but 'auto_merge' has been disabled.`)
@@ -143,7 +121,7 @@ export default class CommentBuilder implements ICommentBuilder
         return;
     }
 
-    private AddNoPermsLine(): void
+    private addNoPermsLine(): void
     {
         // Zero width character is added to avoid pinging the user
         this._comment.push(`Sorry, @\u200B'${this._actionInfo.Event.User}, it is possible to fast-forward ${this._baseFullRef} to 
@@ -152,12 +130,34 @@ export default class CommentBuilder implements ICommentBuilder
         return;
     }
 
-    private AddCommandNotInvokedLine(): void
+    private addCommandNotInvokedLine(): void
     {
         this._comment.push(`It is possible to fast-forward ${this._baseFullRef} to ${this._headFullRef}. If you have write access 
             to the target repository, you can add the comment \`${this._actionInfo.Options.CustomCommand}\` to initiate the fast-forward.`);
 
         return;
+    }
+
+    private async addShellBlocks(): Promise<void>
+    {
+        let result: string[] = []
+
+        // Create the target shell block
+        result.push(`Target Branch (${this._prInfo.BaseRef}):`);
+        let owner = this._repoInfo.Owner;
+        let repoName = this._repoInfo.Name;
+        let sha = this._prInfo.BaseSha;
+        result = result.concat(await this.createBlock(owner, repoName, sha));
+
+        // Create the PR shell block
+        result.push(`Pull Request (${this._prInfo.HeadRef}):`);
+        owner = this._prInfo.HeadOwner || owner;
+        repoName = this._prInfo.HeadRepo || repoName;
+        sha = this._prInfo.HeadSha;
+        result = result.concat(await this.createBlock(owner, repoName, sha));
+
+        // Push the result to our stored comment
+        this._comment = this._comment.concat(result)
     }
 
     private async createBlock(
