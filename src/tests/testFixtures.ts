@@ -13,6 +13,10 @@ import ApiCaller from "../implements/apiCaller.js";
 import {Octokit} from "@octokit/core";
 import CommentBuilder from "../implements/commentBuilder.js";
 import EventInfo from "../implements/eventInfo.js";
+import PrInfo from "../implements/prInfo.js";
+import ActionInfoFactory from "../implements/actionInfoFactory.js";
+import Options from "../implements/options.js";
+import RepoInfo from "../implements/repoInfo.js";
 
 export default class TestFixtures
 {
@@ -24,6 +28,10 @@ export default class TestFixtures
 
     public static ConcreteCommentBuilder = CommentBuilder;
     public static ConcreteEventInfo = EventInfo;
+    public static ConcretePrInfo = PrInfo;
+    public static ConcreteActionInfoFactory = ActionInfoFactory;
+    public static ConcreteOptions = Options;
+    public static ConcreteRepoInfo = RepoInfo;
 
     public static ParseEventFile(eventPath: string): ActionEvent
     {

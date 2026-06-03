@@ -4,9 +4,9 @@ import TestFixtures from "./testFixtures.js";
 import type ICommentBuilder from "../core/ICommentBuilder.js";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
 
-let subject: ICommentBuilder;
-let mockActionInfo: IActionInfo;
-const commentBuilder: typeof TestFixtures.ConcreteCommentBuilder = TestFixtures.ConcreteCommentBuilder;
+let subject: ICommentBuilder,
+    mockActionInfo: IActionInfo,
+    commentBuilder: typeof TestFixtures.ConcreteCommentBuilder;
 
 function containsBothRefs(func: (...args: any) => any, ...args: any[])
 {
@@ -21,6 +21,7 @@ function containsBothRefs(func: (...args: any) => any, ...args: any[])
 
 beforeEach(() => {
     // Create new info objects every time while keeping their definitions towards the top of this file
+    commentBuilder = TestFixtures.ConcreteCommentBuilder;
     mockActionInfo = TestFixtures.CreateMockActionInfo();
     subject = new commentBuilder(mockActionInfo, mockActionInfo.ApiCaller.GetCommit);
 });

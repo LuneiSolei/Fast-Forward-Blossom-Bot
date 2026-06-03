@@ -1,7 +1,5 @@
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IEventInfo from "../core/actionInfo/IEventInfo.js";
-import EventInfo from "../implements/eventInfo.js";
-import Options from "../implements/options.js";
 import EventFileError from "../core/errors/eventFileError.js";
 import InvalidEventError from "../core/errors/invalidEventError.js";
 import TestFixtures from "./testFixtures.js";
@@ -16,10 +14,11 @@ let subject: IEventInfo,
     issueCommentEditedEventPath: string,
     invalidEventPath: string,
     incorrectEventPath: string,
-    event: ActionEvent;
-const eventInfo: new (options: IOptions, eventPath: string) => IEventInfo = EventInfo;
+    event: ActionEvent,
+    eventInfo: typeof TestFixtures.ConcreteEventInfo;
 
 beforeEach(() => {
+    eventInfo = TestFixtures.ConcreteEventInfo;
     invalidEventPath = TestFixtures.InvalidEventPath;
     incorrectEventPath = TestFixtures.IncorrectEventPath;
     pullRequestOpenedEventPath = TestFixtures.PullRequestOpenedEventPath;
@@ -34,7 +33,7 @@ describe("constructor", () => {
     });
 
     test("throws when an invalid event is supplied", async () => {
-        expect(() => new eventInfo(new Options(), incorrectEventPath)).toThrow(InvalidEventError);
+        expect(() => new eventInfo(TestFixtures.CreateMockOptions(), incorrectEventPath)).toThrow(InvalidEventError);
     });
 });
 

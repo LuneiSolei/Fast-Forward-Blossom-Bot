@@ -1,14 +1,18 @@
-import {beforeAll, describe, expect, test} from "@jest/globals";
+import {beforeAll, beforeEach, describe, expect, test} from "@jest/globals";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import ActionInfoFactory from "../implements/actionInfoFactory.js";
 import TestFixtures from "./testFixtures.js";
 import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 
-let subject: IActionInfo;
+let subject: IActionInfo,
+    actionInfoFactory: typeof TestFixtures.ConcreteActionInfoFactory;
 
 describe("Create()", () => {
+    beforeEach(() => {
+        actionInfoFactory = TestFixtures.ConcreteActionInfoFactory;
+    });
+
     test("returns a constructed instance of ActionInfo", async () => {
-        await expect(async () => await ActionInfoFactory.Create(
+        await expect(async () => await actionInfoFactory.Create(
             TestFixtures.CreateMockPrInfo(),
             TestFixtures.CreateMockOptions(),
             TestFixtures.CreateMockEventInfo(),
@@ -21,7 +25,7 @@ describe("Create()", () => {
     test("throws when GITHUB_EVENT_PATH environment variable is not set", async () => {
         const original = process.env["GITHUB_EVENT_PATH"];
         delete process.env["GITHUB_EVENT_PATH"];
-        await expect(ActionInfoFactory.Create(
+        await expect(actionInfoFactory.Create(
             TestFixtures.CreateMockPrInfo(),
             TestFixtures.CreateMockOptions(),
             TestFixtures.CreateMockEventInfo(),
@@ -36,7 +40,7 @@ describe("Create()", () => {
 
 describe("Getters", () => {
     beforeAll(async () => {
-        subject = await ActionInfoFactory.Create(
+        subject = await actionInfoFactory.Create(
             TestFixtures.CreateMockPrInfo(),
             TestFixtures.CreateMockOptions(),
             TestFixtures.CreateMockEventInfo(),

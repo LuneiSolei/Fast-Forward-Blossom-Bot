@@ -1,4 +1,3 @@
-import PrInfo from "../implements/prInfo.js";
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import {ActionEventType} from "../core/actionEvent/actionEventType.js";
@@ -8,28 +7,22 @@ import TestFixtures from "./testFixtures.js";
 import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 
 let subject: IPrInfo,
+    prInfo: typeof TestFixtures.ConcretePrInfo,
     mockApiCaller: IApiCaller,
     pullRequestOpenedEvent: PullRequestOpenedEvent,
     issueCommentCreatedEvent: IssueCommentCreatedEvent,
     issueCommentEditedEvent: IssueCommentEditedEvent;
 
 beforeEach(() => {
-    subject = new PrInfo();
+    prInfo = TestFixtures.ConcretePrInfo;
+    subject = new prInfo();
     mockApiCaller = TestFixtures.CreateMockApiCaller();
-    const pullRequestOpenedEventPath = TestFixtures.PullRequestOpenedEventPath,
-        issueCommentCreatedEventPath = TestFixtures.IssueCommentCreatedEventPath,
-        issueCommentEditedEventPath = TestFixtures.IssueCommentEditedEventPath;
-
-    pullRequestOpenedEvent = TestFixtures.ParseEventFile(pullRequestOpenedEventPath) as PullRequestOpenedEvent,
-    issueCommentCreatedEvent = TestFixtures.ParseEventFile(issueCommentCreatedEventPath) as IssueCommentCreatedEvent,
-    issueCommentEditedEvent = TestFixtures.ParseEventFile(issueCommentEditedEventPath) as IssueCommentEditedEvent;
+    pullRequestOpenedEvent = TestFixtures.ParseEventFile(TestFixtures.PullRequestOpenedEventPath) as PullRequestOpenedEvent;
+    issueCommentCreatedEvent = TestFixtures.ParseEventFile(TestFixtures.IssueCommentCreatedEventPath) as IssueCommentCreatedEvent;
+    issueCommentEditedEvent = TestFixtures.ParseEventFile(TestFixtures.IssueCommentEditedEventPath) as IssueCommentEditedEvent;
 });
 
 describe("SetEvent()", () => {
-    beforeEach(async () => {
-        subject = new PrInfo();
-    });
-
     function commonEvent(event: IssueCommentCreatedEvent | IssueCommentEditedEvent) {
         // Parse event
         subject.SetEvent(event, ActionEventType.IssueCommentCreated);
@@ -249,7 +242,7 @@ describe("FinishInitialization()", () => {
 
 describe("Uncovered Branches", () => {
     beforeEach(() => {
-        subject = new PrInfo();
+        subject = new prInfo();
         subject.SetEvent(pullRequestOpenedEvent, ActionEventType.PullRequestOpened);
         subject.FinishInitialization(mockApiCaller, pullRequestOpenedEvent, ActionEventType.PullRequestOpened);
     });

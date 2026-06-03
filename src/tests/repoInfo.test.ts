@@ -1,48 +1,41 @@
 import {beforeEach, describe, expect, test} from "@jest/globals";
-import RepoInfo from "../implements/repoInfo.js";
-import PrInfo from "../implements/prInfo.js";
 import type {PullRequestOpenedEvent} from "@octokit/webhooks-types";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
+import TestFixtures from "./testFixtures.js";
+import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
 
-let prInfo: IPrInfo;
-let subject: IRepoInfo;
+let subject: IRepoInfo,
+    event: ActionEvent,
+    mockPrInfo: IPrInfo,
+    repoInfo: typeof TestFixtures.ConcreteRepoInfo;
 
 beforeEach(() => {
-    prInfo = new PrInfo();
-    subject = new RepoInfo(prInfo, {
-        repository: {
-            owner: {
-                login: "luneisolei"
-            },
-            name: "Fast-Forward-Blossom-Bot",
-            clone_url: "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot.git",
-        },
-        sender: {
-            login: "luneisolei"
-        }
-    } as unknown as PullRequestOpenedEvent)
+    mockPrInfo = TestFixtures.CreateMockPrInfo()
+    repoInfo = TestFixtures.ConcreteRepoInfo;
+    event = TestFixtures.ParseEventFile(TestFixtures.PullRequestOpenedEventPath) as PullRequestOpenedEvent;
+    subject = new repoInfo(mockPrInfo, event)
 })
 
 test("constructor initializes new instance properly", async () => {
-    expect(subject).toBeInstanceOf(RepoInfo);
+    expect(() => new repoInfo(mockPrInfo, event)).not.toThrow();
 });
 
 describe("Property Getters", () => {
     test("gets repo name", async () => {
-        expect(subject.Name).toEqual("Fast-Forward-Blossom-Bot");
+        expect(subject.Name).toEqual(event.repository.name);
     });
 
     test("gets pull request info", async () => {
-        expect(subject.Pr).toEqual(prInfo);
+        expect(subject.Pr).toEqual(mockPrInfo);
     });
 
 
     test("gets repo owner", async () => {
-        expect(subject.Owner).toEqual("luneisolei");
+        expect(subject.Owner).toEqual(event.repository.owner.login);
     });
 
     test("gets clone url", async () => {
-       expect(subject.CloneUrl).toEqual("https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot.git");
+       expect(subject.CloneUrl).toEqual(event.repository.clone_url);
     });
 });

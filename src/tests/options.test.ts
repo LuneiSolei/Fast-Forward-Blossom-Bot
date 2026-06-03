@@ -1,41 +1,30 @@
-import {beforeEach, describe, expect, test} from "@jest/globals";
+import {beforeEach, expect, test} from "@jest/globals";
 import type IOptions from "../core/actionInfo/IOptions.js";
-import Options from "../implements/options.js";
 import InvalidInputValueError from "../core/errors/invalidInputValueError.js";
+import TestFixtures from "./testFixtures.js";
 
-let subject: IOptions;
+let subject: IOptions,
+    options: typeof TestFixtures.ConcreteOptions;
 
 beforeEach(() => {
     // NOTE: Test environment variables are set via the run configuration
-    subject = new Options();
+    options = TestFixtures.ConcreteOptions;
+    subject = new options();
 });
 
-describe("Property Getters", () => {
-    test("fails when post comment has an invalid value", async () => {
-        const original = process.env["INPUT_POST_COMMENT"] as string;
-        process.env["INPUT_POST_COMMENT"] = "anInvalidValue";
-        expect(() => new Options().PostComment).toThrow(InvalidInputValueError);
-        process.env["INPUT_POST_COMMENT"] = original;
-    });
 
-    test("gets auto merge", async () => {
-        expect(subject.AutoMerge).toEqual(true);
+test("post comment getter fails when post comment is an invalid value", async () => {
+    const original = process.env["INPUT_POST_COMMENT"] as string;
+    process.env["INPUT_POST_COMMENT"] = "anInvalidValue";
+    expect(() => new options().PostComment).toThrow(InvalidInputValueError);
+    process.env["INPUT_POST_COMMENT"] = original;
+});
 
-        // Perform again to test if branch
-        expect(subject.AutoMerge).toEqual(true);
-    });
-
-    test("gets custom command", async () => {
-        expect(subject.CustomCommand).toEqual("/fast-forward");
-
-        // Perform again to test if branch
-        expect(subject.CustomCommand).toEqual("/fast-forward");
-    });
-
-    test ("gets post comment", async () => {
-        expect(subject.PostComment).toEqual("always");
-
-        // Perform again to test if branch
-        expect(subject.PostComment).toEqual("always");
-    });
+test.each([
+    { label: "auto merge", get value() { return subject.AutoMerge }, expected: true },
+    { label: "custom command",  get value() { return subject.CustomCommand }, expected: "/fast-forward" },
+    { label: "post comment",  get value() { return subject.PostComment }, expected: "always" },
+])("gets $label", ({ value, expected }) => {
+    expect(value).toEqual(expected);
+    expect(value).toEqual(expected); // Perform twice to test if branch
 });
