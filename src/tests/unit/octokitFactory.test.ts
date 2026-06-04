@@ -21,7 +21,7 @@ describe("Create()", () => {
         });
 
         await import("@octokit/core");
-        const { default: OctokitFactory } = await import("../implements/octokitFactory.js");
+        const { default: OctokitFactory } = await import("../../implements/octokitFactory.js");
 
         await expect(OctokitFactory.Create("luneisolei", "Fast-Forward-Blossom-Bot-Tests")).resolves.toBeDefined();
     });
@@ -38,8 +38,8 @@ describe("Create()", () => {
         });
 
         await import("@octokit/core");
-        const { default: OctokitFactory } = await import("../implements/octokitFactory.js");
-        const { default: OctokitInitError } = await import("../core/errors/OctokitInitError.js");
+        const { default: OctokitFactory } = await import("../../implements/octokitFactory.js");
+        const { default: OctokitInitError } = await import("../../core/errors/OctokitInitError.js");
 
         await expect(() => OctokitFactory.Create("luneisolei", "Fast-Forward-Blossom-Bot-Tests"))
             .rejects
@@ -59,8 +59,8 @@ describe("Create()", () => {
         });
 
         await import("@octokit/core");
-        const { default: OctokitFactory } = await import("../implements/octokitFactory.js");
-        const { default: AppNotInstalledError } = await import("../core/errors/appNotInstalledError.js");
+        const { default: OctokitFactory } = await import("../../implements/octokitFactory.js");
+        const { default: AppNotInstalledError } = await import("../../core/errors/appNotInstalledError.js");
 
 
         await expect(OctokitFactory.Create("luneisolei", "Fast-Forward-Blossom-Bot-Tests"))
@@ -85,8 +85,8 @@ describe("Create()", () => {
         });
 
         await import ("@octokit/core");
-        const { default: OctokitFactory } = await import("../implements/octokitFactory.js");
-        const { default: OctokitInitError } = await import("../core/errors/OctokitInitError.js");
+        const { default: OctokitFactory } = await import("../../implements/octokitFactory.js");
+        const { default: OctokitInitError } = await import("../../core/errors/OctokitInitError.js");
 
         await expect(OctokitFactory.Create("luneisolei", "Fast-Forward-Blossom-Bot-Tests"))
             .rejects

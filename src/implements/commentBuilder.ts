@@ -102,7 +102,7 @@ export default class CommentBuilder implements ICommentBuilder
         let exclude: string = "";
         if (this._prInfo.MergeBaseParentsAmount === 0) {
             // Merge base is a root (no parents). Exclude commits from before the merge base.
-            exclude = this._prInfo.MergeBaseSha;
+            exclude = this._prInfo.MergeBaseSha ?? "";
         }
 
         result.push(

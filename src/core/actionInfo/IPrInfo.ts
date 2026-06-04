@@ -15,7 +15,7 @@ export default interface IPrInfo
     get HeadLabel(): string;
     get HeadOwner(): string;
     get HeadRepo(): string;
-    get MergeBaseSha(): string;
+    get MergeBaseSha(): string | undefined;
     get MergeBaseParentsAmount(): number
     get NodeId(): string;
     get IssueNumber(): number;

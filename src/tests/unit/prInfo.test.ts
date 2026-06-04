@@ -1,15 +1,28 @@
-import {beforeEach, describe, expect, jest, test} from "@jest/globals";
-import type IPrInfo from "../core/actionInfo/IPrInfo.js";
-import {ActionEventType} from "../core/actionEvent/actionEventType.js";
+import {afterEach, beforeEach, describe, expect, jest, test} from "@jest/globals";
+import type IPrInfo from "../../core/actionInfo/IPrInfo.js";
+import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
-import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
-import TestFixtures from "./testFixtures.js";
-import type IApiCaller from "../core/actionInfo/IApiCaller.js";
-import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
+import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
+import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
+import type {ActionEvent} from "../../core/actionEvent/actionEvent.js";
 
+jest.unstable_mockModule("../../core/git", () => ({
+    default: {
+        // @ts-ignore
+        GetMergeBaseSha: jest.fn(),
+        GetAmountOfParents: jest.fn(),
+        CloneRepo: jest.fn(),
+        Log: jest.fn()
+    }
+}));
+
+const { default: Git } = await import("../../core/git.js");
+const { default: TestFixtures } = await import("./testFixtures.js");
 let subject: IPrInfo,
     mockApiCaller: IApiCaller,
-    event: ActionEvent;
+    event: ActionEvent,
+    mockGetMergeBaseSha: jest.MockedFunction<typeof Git.GetMergeBaseSha>,
+    mockGetAmountOfParents: jest.MockedFunction<typeof Git.GetAmountOfParents>;
 
 async function assertPullRequestRetrievedViaGraphql(subject: IPrInfo, event: ActionEvent, eventType: ActionEventType) {
     const expectedValues = {
@@ -46,8 +59,6 @@ async function assertPullRequestRetrievedViaGraphql(subject: IPrInfo, event: Act
     expect(subject.HeadLabel).toEqual(pr.headRepositoryOwner.login + "/" + pr.headRefName);
     expect(subject.HeadRepo).toEqual(pr.headRepository.name);
     expect(subject.NodeId).toEqual(pr.id);
-    expect(subject.MergeBaseSha).toBeNull();
-    expect(subject.MergeBaseParentsAmount).toEqual(0);
     expect(subject.IssueNumber).toBeDefined();
 }
 
@@ -57,12 +68,18 @@ describe.each([
     { eventType: ActionEventType.IssueCommentCreated, get eventPath() { return TestFixtures.IssueCommentCreatedEventPath; }},
     { eventType: ActionEventType.IssueCommentEdited, get eventPath() { return TestFixtures.IssueCommentEditedEventPath; }}
 ])("when event type is $eventType", (describeRow) => {
-
     beforeEach(() => {
         const prInfo = TestFixtures.ConcretePrInfo;
         subject = new prInfo();
+        mockGetMergeBaseSha = Git.GetMergeBaseSha as jest.MockedFunction<typeof Git.GetMergeBaseSha>
+        mockGetAmountOfParents = Git.GetAmountOfParents as jest.MockedFunction<typeof Git.GetAmountOfParents>;
         mockApiCaller = TestFixtures.CreateMockApiCaller();
         event = TestFixtures.ParseEventFile(describeRow.eventPath);
+    });
+
+    afterEach(() => {
+        mockGetMergeBaseSha.mockClear();
+        mockGetAmountOfParents.mockClear();
     });
 
     // ...test SetEvent()
@@ -148,13 +165,65 @@ describe.each([
         });
     });
 
-    // ...test MergeBaseSha and MergeBaseParentsAmount
-    test("returns MergeBaseSha if already set", () => {
-        (subject as any)._mergeBaseSha = "abc1234";
+    // ...test MergeBaseSha
+    describe("MergeBaseSha", () => {
+        beforeEach(async () => {
+            const expectedValues = {
+                repository: {
+                    pullRequest: {
+                        baseRefName: "master",
+                        baseRefOid: "ThisIsSomeRandomOID12345",
+                        headRefName: "new-feature-branch",
+                        headRefOid: "ThisIsAlsoARandomOID12345",
+                        headRepository: {
+                            name: "Fast-Forward-Blossom-Bot"
+                        },
+                        headRepositoryOwner: {
+                            login: "luneisolei"
+                        },
+                        id: "MDQ6VXNlcjU4MzIzMQ=="
+                    }
+                }
+            };
 
-        expect(subject.MergeBaseSha).toEqual("abc1234");
+            mockApiCaller = TestFixtures.CreateMockApiCaller({
+                // @ts-ignore
+                graphql: jest.fn().mockResolvedValue(expectedValues)
+            });
+            subject.SetEvent(event, describeRow.eventType);
+            await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
+        });
+
+        afterEach(() => {
+            mockGetMergeBaseSha.mockClear();
+            mockGetAmountOfParents.mockClear();
+        });
+
+        test("returns MergeBaseSha", async () => {
+            (subject as any)._mergeBaseSha = "abc123";
+            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
+
+            expect(subject.MergeBaseSha).toEqual("abc123");
+        });
+
+        test("returns when MergeBaseSha is initially undefined", async () => {
+            (subject as any)._mergeBaseSha = undefined;
+            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
+            const result = subject.MergeBaseSha;
+
+            expect(result).toEqual("abc123");
+        });
+
+        test("passes BaseSha and HeadSha to MergeBaseSha", async () => {
+            (subject as any)._mergeBaseSha = undefined;
+            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
+            subject.MergeBaseSha;
+
+            expect(mockGetMergeBaseSha).toHaveBeenCalledWith(subject.BaseSha, subject.HeadSha);
+        });
     });
 
+    // ...test MergeBaseParentsAmount
     test("returns MergeBaseParentsAmount if already set", () => {
         (subject as any)._mergeBaseParentsAmount = 102983;
 

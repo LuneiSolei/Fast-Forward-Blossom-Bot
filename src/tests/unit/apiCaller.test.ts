@@ -1,12 +1,12 @@
 import TestFixtures from "./testFixtures.js";
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
-import type IApiCaller from "../core/actionInfo/IApiCaller.js";
+import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
 import {Octokit} from "@octokit/core";
-import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
-import {ActionEventType} from "../core/actionEvent/actionEventType.js";
-import type {IGraphQlCollaboratorResponse} from "../core/githubApi/IGraphQlCollaboratorResponse.js";
-import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import type ICommit from "../core/ICommit.js";
+import type {IApiCompareResponse} from "../../core/githubApi/IApiCompareResponse.js";
+import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
+import type {IGraphQlCollaboratorResponse} from "../../core/githubApi/IGraphQlCollaboratorResponse.js";
+import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
+import type ICommit from "../../core/ICommit.js";
 
 let subject: IApiCaller,
     apiCaller: typeof TestFixtures.ConcreteApiCaller,

@@ -1,6 +1,6 @@
 import {beforeEach, expect, test} from "@jest/globals";
-import type IOptions from "../core/actionInfo/IOptions.js";
-import InvalidInputValueError from "../core/errors/invalidInputValueError.js";
+import type IOptions from "../../core/actionInfo/IOptions.js";
+import InvalidInputValueError from "../../core/errors/invalidInputValueError.js";
 import TestFixtures from "./testFixtures.js";
 
 let subject: IOptions,

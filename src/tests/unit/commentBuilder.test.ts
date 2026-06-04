@@ -1,8 +1,8 @@
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
-import type IActionInfo from "../core/actionInfo/IActionInfo.js";
+import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
 import TestFixtures from "./testFixtures.js";
-import type ICommentBuilder from "../core/ICommentBuilder.js";
-import type IEventInfo from "../core/actionInfo/IEventInfo.js";
+import type ICommentBuilder from "../../core/ICommentBuilder.js";
+import type IEventInfo from "../../core/actionInfo/IEventInfo.js";
 
 let subject: ICommentBuilder,
     mockActionInfo: IActionInfo,

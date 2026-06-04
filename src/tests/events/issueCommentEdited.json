@@ -7,7 +7,8 @@
         "owner": {
             "login": "luneisolei"
         },
-        "name": "Fast-Forward-Blossom-Bot-Tests"
+        "name": "Fast-Forward-Blossom-Bot-Tests",
+        "clone_url": "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot-Tests.git"
     },
     "issue": {
         "number": 43,

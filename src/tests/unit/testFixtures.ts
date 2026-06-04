@@ -1,23 +1,23 @@
 import {jest} from "@jest/globals";
-import type IPrInfo from "../core/actionInfo/IPrInfo.js";
-import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
-import {ActionEventType} from "../core/actionEvent/actionEventType.js";
-import type IOptions from "../core/actionInfo/IOptions.js";
-import type IEventInfo from "../core/actionInfo/IEventInfo.js";
-import type IActionInfo from "../core/actionInfo/IActionInfo.js";
-import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
+import type IPrInfo from "../../core/actionInfo/IPrInfo.js";
+import type IRepoInfo from "../../core/actionInfo/IRepoInfo.js";
+import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
+import type IOptions from "../../core/actionInfo/IOptions.js";
+import type IEventInfo from "../../core/actionInfo/IEventInfo.js";
+import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
+import type {ActionEvent} from "../../core/actionEvent/actionEvent.js";
 import fs from "node:fs";
 import path from "path";
-import type IApiCaller from "../core/actionInfo/IApiCaller.js";
-import ApiCaller from "../implements/apiCaller.js";
+import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
+import ApiCaller from "../../implements/apiCaller.js";
 import {Octokit} from "@octokit/core";
-import CommentBuilder from "../implements/commentBuilder.js";
-import EventInfo from "../implements/eventInfo.js";
-import PrInfo from "../implements/prInfo.js";
-import ActionInfoFactory from "../implements/actionInfoFactory.js";
-import Options from "../implements/options.js";
-import RepoInfo from "../implements/repoInfo.js";
-import type ICommentBuilder from "../core/ICommentBuilder.js";
+import CommentBuilder from "../../implements/commentBuilder.js";
+import EventInfo from "../../implements/eventInfo.js";
+import PrInfo from "../../implements/prInfo.js";
+import ActionInfoFactory from "../../implements/actionInfoFactory.js";
+import Options from "../../implements/options.js";
+import RepoInfo from "../../implements/repoInfo.js";
+import type ICommentBuilder from "../../core/ICommentBuilder.js";
 
 export default class TestFixtures
 {

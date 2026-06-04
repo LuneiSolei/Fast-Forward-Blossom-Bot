@@ -110,7 +110,10 @@ export default class PrInfo implements IPrInfo
     private GetMergeBaseData(): { sha: string, amountOfParents: number }
     {
         // Get the merge base's sha
-        this._mergeBaseSha = Git.GetMergeBaseSha(this.BaseSha, this.HeadSha);
+        const result = Git.GetMergeBaseSha(this.BaseSha, this.HeadSha);
+        if (!result) return { sha: "", amountOfParents: 0 };
+
+        this._mergeBaseSha = result;
 
         // Get the amount of parents from the sha
         this._mergeBaseParentsAmount = Git.GetAmountOfParents(this._mergeBaseSha);

@@ -1,7 +1,7 @@
 import {beforeAll, beforeEach, describe, expect, test} from "@jest/globals";
-import type IActionInfo from "../core/actionInfo/IActionInfo.js";
+import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
 import TestFixtures from "./testFixtures.js";
-import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
+import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
 
 let subject: IActionInfo,
     actionInfoFactory: typeof TestFixtures.ConcreteActionInfoFactory;

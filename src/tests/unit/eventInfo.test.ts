@@ -1,13 +1,13 @@
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
-import type IEventInfo from "../core/actionInfo/IEventInfo.js";
-import EventFileError from "../core/errors/eventFileError.js";
-import InvalidEventError from "../core/errors/invalidEventError.js";
+import type IEventInfo from "../../core/actionInfo/IEventInfo.js";
+import EventFileError from "../../core/errors/eventFileError.js";
+import InvalidEventError from "../../core/errors/invalidEventError.js";
 import TestFixtures from "./testFixtures.js";
-import type IOptions from "../core/actionInfo/IOptions.js";
-import {ActionEventType} from "../core/actionEvent/actionEventType.js";
+import type IOptions from "../../core/actionInfo/IOptions.js";
+import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
-import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
-import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
+import type {ActionEvent} from "../../core/actionEvent/actionEvent.js";
+import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
 
 let subject: IEventInfo,
     pullRequestOpenedEventPath: string,
