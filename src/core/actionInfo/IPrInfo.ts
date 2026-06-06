@@ -15,9 +15,11 @@ export default interface IPrInfo
     get HeadLabel(): string;
     get HeadOwner(): string;
     get HeadRepo(): string;
-    get MergeBaseSha(): string | undefined;
+    get MergeBaseSha(): string;
     get MergeBaseParentsAmount(): number
-    get NodeId(): string;
+    get PrNodeId(): string;
+    get BaseNodeId(): string;
+    get HeadNodeId(): string;
     get IssueNumber(): number;
     SetEvent(
         event: ActionEvent,

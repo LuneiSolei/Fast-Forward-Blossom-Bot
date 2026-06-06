@@ -16,7 +16,7 @@ export default class CommentBuilder implements ICommentBuilder
     private readonly _commitGetter: (owner: string, repoName: string, sha: string) => Promise<ICommit>;
     private _comment: string[] = [];
 
-    public constructor(info: IActionInfo, commitGetter: (owner: string, repoName: string, sha: string) => Promise<ICommit>)
+    public constructor(info: IActionInfo, commitGetter: typeof this._commitGetter)
     {
         this._actionInfo = info;
         this._repoInfo = info.Repo;

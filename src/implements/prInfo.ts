@@ -21,7 +21,9 @@ export default class PrInfo implements IPrInfo
     private _headLabel?: string;
     private _headOwner?: string;
     private _headRepo?: string;
-    private _nodeId?: string;
+    private _prNodeId?: string;
+    private _headNodeId?: string;
+    private _baseNodeId?: string;
     private _mergeBaseSha?: string;
     private _mergeBaseParentsAmount?: number;
     private _issueNumber?: number;
@@ -38,7 +40,7 @@ export default class PrInfo implements IPrInfo
                 this._headRef = event.pull_request.head.ref;
                 this._headSha = event.pull_request.head.sha;
                 this._headLabel = event.pull_request.head.label;
-                this._nodeId = event.pull_request.node_id;
+                this._prNodeId = event.pull_request.node_id;
                 this._headOwner = event.pull_request.head.repo?.owner.login || event.repository.owner.login
                 this._headRepo = event.pull_request.head.repo?.name || event.repository.name;
                 this._issueNumber = event.pull_request.number;
@@ -63,6 +65,14 @@ export default class PrInfo implements IPrInfo
         switch (eventType)
         {
             case ActionEventType.PullRequestOpened:
+                this._baseNodeId = await apiCaller.GetNodeId(
+                    event.repository.owner.login,
+                    event.repository.name,
+                    `refs/heads/${this._baseRef}`);
+                this._headNodeId = await apiCaller.GetNodeId(
+                    event.repository.owner.login,
+                    event.repository.name,
+                    `refs/heads/${this._headRef}`);
                 return;
             case ActionEventType.IssueCommentCreated:
                 event = event as IssueCommentCreatedEvent;
@@ -89,12 +99,10 @@ export default class PrInfo implements IPrInfo
         }
 
         // Retrieve the pull request info via api call
+        const owner = event.repository.owner.login;
+        const repoName = event.repository.name;
         this._issueNumber = event.issue.number
-        const res: IGraphQlPrResponse = await apiCaller.GetPullRequest(
-            event.repository.owner.login,
-            event.repository.name,
-            this._issueNumber
-        );
+        const res: IGraphQlPrResponse = await apiCaller.GetPullRequest(owner, repoName, this._issueNumber);
 
         const pr = res.repository.pullRequest;
         this._baseRef = pr.baseRefName;
@@ -103,8 +111,10 @@ export default class PrInfo implements IPrInfo
         this._headSha = pr.headRefOid;
         this._headOwner = pr.headRepositoryOwner.login;
         this._headLabel = `${this._headOwner}/${pr.headRefName}`;
-        this._nodeId = pr.id;
+        this._prNodeId = pr.id;
         this._headRepo = pr.headRepository.name;
+        this._baseNodeId = await apiCaller.GetNodeId(owner, repoName, `refs/heads/${this._baseRef}`);
+        this._headNodeId = await apiCaller.GetNodeId(owner, repoName, `refs/heads/${this._headRef}`);
     }
 
     private GetMergeBaseData(): { sha: string, amountOfParents: number }
@@ -172,10 +182,22 @@ export default class PrInfo implements IPrInfo
         throw new UnknownReferenceError("HeadLabel", "Property 'HeadLabel' is uninitialized");
     }
 
-    public get NodeId(): string {
-        if (this._nodeId) return this._nodeId;
+    public get PrNodeId(): string {
+        if (this._prNodeId) return this._prNodeId;
 
-        throw new UnknownReferenceError("NodeId", "Property 'NodeId' is uninitialized");
+        throw new UnknownReferenceError("PrNodeId", "Property 'PrNodeId' is uninitialized");
+    }
+
+    public get BaseNodeId(): string {
+        if (this._baseNodeId) return this._baseNodeId;
+
+        throw new UnknownReferenceError("BaseNodeId", "Property 'BaseNodeId' is uninitialized");
+    }
+
+    public get HeadNodeId(): string {
+        if (this._headNodeId) return this._headNodeId;
+
+        throw new UnknownReferenceError("HeadNodeId", "Property 'HeadNodeId' is uninitialized");
     }
 
     public get HeadOwner(): string

@@ -4,6 +4,7 @@ import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import type {IApiCompareResponse} from "../core/githubApi/IApiCompareResponse.js";
 import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";
 import type {IGraphQlCollaboratorResponse} from "../core/githubApi/IGraphQlCollaboratorResponse.js";
+import type {IGraphQlNodeIdResponse} from "../core/githubApi/IGraphQlNodeIdResponse.js";
 
 export default class ApiCaller implements IApiCaller
 {
@@ -37,7 +38,12 @@ export default class ApiCaller implements IApiCaller
         `, { owner, repoName, prNumber });
     }
 
-    public async GetBaseHeadComparison(owner: string, repoName: string, baseSha: string, headLabel: string): Promise<IApiCompareResponse>
+    public async GetBaseHeadComparison(
+        owner: string,
+        repoName: string,
+        baseSha: string,
+        headLabel: string
+    ): Promise<IApiCompareResponse>
     {
         return await this._octokit.request("GET /repos/{owner}/{repo}/compare/{basehead}", {
             owner: owner,
@@ -101,5 +107,42 @@ export default class ApiCaller implements IApiCaller
                 }
             }`,
             {owner, repoName, sha});
+    }
+
+    public async GetNodeId(owner: string, repoName: string, qualifiedName: string): Promise<string>
+    {
+        const res: IGraphQlNodeIdResponse = await this._octokit.graphql(`
+            query GetNodeId($owner: String!, $repoName: String!, $qualifiedName: String!) {
+                repository(owner: $owner, repoName: $repoName) {
+                    ref(qualifiedName: $qualifiedName) {
+                        id
+                    }
+                }
+            }
+        `, {owner, repoName, qualifiedName});
+
+        return res.repository.ref.id;
+    }
+
+    public async FastForward(nodeId: string, oid: string): Promise<void>
+    {
+        await this._octokit.graphql(`
+            mutation FastForwardBranch($input: UpdateRefInput!) {
+                updateRef(input: $input) {
+                    ref {
+                        name
+                        target {
+                            oid
+                        }
+                    }
+                }
+            }
+        `, {
+            input: {
+                refId: nodeId,
+                oid: oid,
+                force: false
+            }
+        });
     }
 }

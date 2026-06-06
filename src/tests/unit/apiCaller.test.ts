@@ -41,7 +41,7 @@ describe.each([
                         headRepositoryOwner: {
                             login: mockActionInfo.Repo.Pr.HeadOwner
                         },
-                        id: mockActionInfo.Repo.Pr.NodeId
+                        id: mockActionInfo.Repo.Pr.PrNodeId
                     }
                 }
             })
@@ -60,7 +60,7 @@ describe.each([
             .not
             .toThrow();
         expect(mockOctokit.graphql).toHaveBeenCalled();
-        expect(res.repository.pullRequest.id).toEqual(mockActionInfo.Repo.Pr.NodeId);
+        expect(res.repository.pullRequest.id).toEqual(mockActionInfo.Repo.Pr.PrNodeId);
     });
 
     // ...test GetBaseHeadComparison()
@@ -129,7 +129,7 @@ describe.each([
         const comment = await TestFixtures.CreateMockCommentBuilder().Build();
 
         await expect(subject.PostComment(
-            mockActionInfo.Repo.Pr.NodeId,
+            mockActionInfo.Repo.Pr.PrNodeId,
             comment
         )).resolves.not.toThrow();
     });
@@ -173,5 +173,26 @@ describe.each([
         )).resolves.not.toThrow();
 
         expect(res.repository.object.oid).toEqual(mockActionInfo.Repo.Pr.MergeBaseSha);
+    });
+
+    // ...test FastForward()
+    test("FastForward() fast-forwards the base branch to the head branch", async () => {
+        const mockActionInfo = await TestFixtures.CreateMockActionInfoFromEventPath(eventPath);
+        const mockResponse = {
+            ref: {
+                name: `refs/heads/${mockActionInfo.Repo.Pr.BaseRef}`,
+                target: {
+                    oid: mockActionInfo.Repo.Pr.HeadSha
+                }
+            }
+        }
+        mockOctokit = TestFixtures.CreateMockOctokit({
+            // @ts-ignore
+            graphql: jest.fn().mockResolvedValue(mockResponse)
+        });
+        subject = new apiCaller(mockOctokit);
+        (mockActionInfo as any)._apiCaller = subject;
+
+        expect(subject.FastForward(mockActionInfo.Repo.Pr.HeadNodeId, mockActionInfo.Repo.Pr.BaseSha))
     });
 });

@@ -18,6 +18,7 @@ import ActionInfoFactory from "../../implements/actionInfoFactory.js";
 import Options from "../../implements/options.js";
 import RepoInfo from "../../implements/repoInfo.js";
 import type ICommentBuilder from "../../core/ICommentBuilder.js";
+import type {IGraphQlPrResponse} from "../../core/githubApi/IGraphQlPrResponse.js";
 
 export default class TestFixtures
 {
@@ -41,11 +42,34 @@ export default class TestFixtures
         return JSON.parse(raw);
     }
 
+    public static CreateMockPullRequestResponse()
+    {
+        return {
+            repository: {
+                pullRequest: {
+                    baseRefName: "mock-base-ref-name",
+                        baseRefOid: "mock-base-ref-oid",
+                        id: "mock-id",
+                        headRepository: {
+                        name: "mock-head-repo",
+                    },
+                    headRefOid: "mock-head-ref-oid",
+                        headRefName: "mock-head-ref-name",
+                        headRepositoryOwner: {
+                        login: "mock-head-repo-owner"
+                    }
+                }
+            }
+        } as IGraphQlPrResponse;
+    }
+
     public static CreateMockPrInfo(overrides?: Partial<IPrInfo>): IPrInfo
     {
         return {
+            BaseNodeId: "mock-node-id",
             BaseRef: "master",
             BaseSha: "abc123",
+            HeadNodeId: "mock-node-id",
             HeadRef: "feature-branch",
             HeadSha: "def456",
             HeadLabel: "luneisolei/Fast-Forward-Blossom-Bot",
@@ -53,7 +77,7 @@ export default class TestFixtures
             HeadRepo: "Fast-Forward-Blossom-Bot",
             MergeBaseSha: "ghi789",
             MergeBaseParentsAmount: 1,
-            NodeId: "some node id",
+            PrNodeId: "some node id",
             FinishInitialization: jest.fn() as any,
             SetEvent: jest.fn(),
             IssueNumber: 4,

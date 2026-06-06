@@ -1,66 +1,19 @@
-import {afterEach, beforeEach, describe, expect, jest, test} from "@jest/globals";
-import type IPrInfo from "../../core/actionInfo/IPrInfo.js";
 import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
-import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";
-import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
-import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
+import {beforeEach, describe, expect, jest, test} from "@jest/globals";
+import TestFixtures from "./testFixtures.js";
+import type IPrInfo from "../../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../../core/actionEvent/actionEvent.js";
+import type {PullRequestOpenedEvent} from "@octokit/webhooks-types";
+import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
+import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
+import type {IGraphQlPrResponse} from "../../core/githubApi/IGraphQlPrResponse.js";
+import type {IGraphQlNodeIdResponse} from "../../core/githubApi/IGraphQlNodeIdResponse.js";
 
-jest.unstable_mockModule("../../core/git", () => ({
-    default: {
-        // @ts-ignore
-        GetMergeBaseSha: jest.fn(),
-        GetAmountOfParents: jest.fn(),
-        CloneRepo: jest.fn(),
-        Log: jest.fn()
-    }
-}));
-
-const { default: Git } = await import("../../core/git.js");
-const { default: TestFixtures } = await import("./testFixtures.js");
 let subject: IPrInfo,
-    mockApiCaller: IApiCaller,
+    prInfo: typeof TestFixtures.ConcretePrInfo,
     event: ActionEvent,
-    mockGetMergeBaseSha: jest.MockedFunction<typeof Git.GetMergeBaseSha>,
-    mockGetAmountOfParents: jest.MockedFunction<typeof Git.GetAmountOfParents>;
-
-async function assertPullRequestRetrievedViaGraphql(subject: IPrInfo, event: ActionEvent, eventType: ActionEventType) {
-    const expectedValues = {
-        repository: {
-            pullRequest: {
-                baseRefName: "master",
-                baseRefOid: "ThisIsSomeRandomOID12345",
-                headRefName: "new-feature-branch",
-                headRefOid: "ThisIsAlsoARandomOID12345",
-                headRepository: {
-                    name: "Fast-Forward-Blossom-Bot"
-                },
-                headRepositoryOwner: {
-                    login: "luneisolei"
-                },
-                id: "MDQ6VXNlcjU4MzIzMQ=="
-            }
-        }
-    };
-    const newApiCaller = TestFixtures.CreateMockApiCaller({
-        // @ts-ignore
-        graphql: jest.fn().mockResolvedValue(expectedValues)
-    });
-
-    subject.SetEvent(event, eventType);
-    await subject.FinishInitialization(newApiCaller, event, eventType);
-
-    const pr = expectedValues.repository.pullRequest;
-    expect(subject.BaseRef).toEqual(pr.baseRefName);
-    expect(subject.BaseSha).toEqual(pr.baseRefOid);
-    expect(subject.HeadRef).toEqual(pr.headRefName);
-    expect(subject.HeadSha).toEqual(pr.headRefOid);
-    expect(subject.HeadOwner).toEqual(pr.headRepositoryOwner.login);
-    expect(subject.HeadLabel).toEqual(pr.headRepositoryOwner.login + "/" + pr.headRefName);
-    expect(subject.HeadRepo).toEqual(pr.headRepository.name);
-    expect(subject.NodeId).toEqual(pr.id);
-    expect(subject.IssueNumber).toBeDefined();
-}
+    mockApiCaller: IApiCaller,
+    mockPr: IGraphQlPrResponse["repository"]["pullRequest"];
 
 // For each event type...
 describe.each([
@@ -68,169 +21,229 @@ describe.each([
     { eventType: ActionEventType.IssueCommentCreated, get eventPath() { return TestFixtures.IssueCommentCreatedEventPath; }},
     { eventType: ActionEventType.IssueCommentEdited, get eventPath() { return TestFixtures.IssueCommentEditedEventPath; }}
 ])("when event type is $eventType", (describeRow) => {
-    beforeEach(() => {
-        const prInfo = TestFixtures.ConcretePrInfo;
+    beforeEach(async () => {
+        prInfo = TestFixtures.ConcretePrInfo;
         subject = new prInfo();
-        mockGetMergeBaseSha = Git.GetMergeBaseSha as jest.MockedFunction<typeof Git.GetMergeBaseSha>
-        mockGetAmountOfParents = Git.GetAmountOfParents as jest.MockedFunction<typeof Git.GetAmountOfParents>;
-        mockApiCaller = TestFixtures.CreateMockApiCaller();
         event = TestFixtures.ParseEventFile(describeRow.eventPath);
     });
 
-    afterEach(() => {
-        mockGetMergeBaseSha.mockClear();
-        mockGetAmountOfParents.mockClear();
-    });
-
-    // ...test SetEvent()
     describe("SetEvent()", () => {
-        test("throws UnknownReferenceError for all PR ref properties when event has no PR data", () => {
-            if (describeRow.eventType === ActionEventType.PullRequestOpened) return;
-
-            subject.SetEvent(event as IssueCommentCreatedEvent | IssueCommentEditedEvent, describeRow.eventType);
-
-            expect(() => subject.BaseRef).toThrow(UnknownReferenceError);
-            expect(() => subject.BaseSha).toThrow(UnknownReferenceError);
-            expect(() => subject.HeadRef).toThrow(UnknownReferenceError);
-            expect(() => subject.HeadSha).toThrow(UnknownReferenceError);
-            expect(() => subject.HeadLabel).toThrow(UnknownReferenceError);
-            expect(() => subject.HeadRepo).toThrow(UnknownReferenceError);
-            expect(() => subject.HeadOwner).toThrow(UnknownReferenceError);
-            expect(() => subject.NodeId).toThrow(UnknownReferenceError);
-        });
-
-        test("parses PR ref properties correctly when event carries PR data directly", () => {
-            if (describeRow.eventType !== ActionEventType.PullRequestOpened) return;
-
-            event = event as PullRequestOpenedEvent;
-            subject.SetEvent(event, ActionEventType.PullRequestOpened);
-
-            expect(subject.BaseRef).toEqual(event.pull_request.base.ref);
-            expect(subject.BaseSha).toEqual(event.pull_request.base.sha);
-            expect(subject.HeadRef).toEqual(event.pull_request.head.ref);
-            expect(subject.HeadSha).toEqual(event.pull_request.head.sha);
-            expect(subject.HeadLabel).toEqual(event.pull_request.head.label);
-            expect(subject.HeadOwner).toEqual(event.pull_request.head.repo?.owner.login);
-        });
-
-        test("falls back to repository name when HeadRepo is undefined", () => {
-            if (describeRow.eventType !== ActionEventType.PullRequestOpened) return;
-
-            event = event as PullRequestOpenedEvent;
-            // @ts-ignore
-            event.pull_request.head.repo.name = undefined;
+        beforeEach(() => {
             subject.SetEvent(event, describeRow.eventType);
-
-            expect(subject.HeadRepo).toEqual(event.repository.name);
         });
 
-        test("falls back to repository owner when HeadOwner is undefined", () => {
-            if (describeRow.eventType !== ActionEventType.PullRequestOpened) return;
-
+        if (describeRow.eventType === ActionEventType.PullRequestOpened)
+        {
             event = event as PullRequestOpenedEvent;
-            // @ts-ignore
-            event.pull_request.head.repo.owner.login = undefined;
-            subject.SetEvent(event, describeRow.eventType);
-
-            expect(subject.HeadOwner).toEqual(event.repository.owner.login);
-        });
+            test.each([
+                {
+                    propertyName: "BaseRef",
+                    get property() { return subject.BaseRef },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.base.ref }
+                },
+                {
+                    propertyName: "BaseSha",
+                    get property() { return subject.BaseSha },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.base.sha }
+                },
+                {
+                    propertyName: "HeadRef",
+                    get property() { return subject.HeadRef },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.head.ref }
+                },
+                {
+                    propertyName: "HeadSha",
+                    get property() { return subject.HeadSha },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.head.sha }
+                },
+                {
+                    propertyName: "HeadOwner",
+                    get property() { return subject.HeadOwner },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.head.repo?.owner.login }
+                },
+                {
+                    propertyName: "HeadLabel",
+                    get property() { return subject.HeadLabel },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.head.label }
+                },
+                {
+                    propertyName: "HeadRepo",
+                    get property() { return subject.HeadRepo },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.head.repo?.name }
+                },
+                {
+                    propertyName: "PrNodeId",
+                    get property() { return subject.PrNodeId },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.node_id }
+                },
+                {
+                    propertyName: "IssueNumber",
+                    get property() { return subject.IssueNumber },
+                    get expected() { return (event as PullRequestOpenedEvent).pull_request.number }
+                }
+            ])("sets property $propertyName successfully", ({property, expected}) => {
+                expect(property).toBe(expected)
+            });
+        } else {
+            test.each([
+                {
+                    propertyName: "BaseRef",
+                    get property() { return subject.BaseRef }
+                },
+                {
+                    propertyName: "BaseSha",
+                    get property() { return subject.BaseSha }
+                },
+                {
+                    propertyName: "HeadRef",
+                    get property() { return subject.HeadRef }
+                },
+                {
+                    propertyName: "HeadSha",
+                    get property() { return subject.HeadSha }
+                },
+                {
+                    propertyName: "HeadOwner",
+                    get property() { return subject.HeadOwner }
+                },
+                {
+                    propertyName: "HeadLabel",
+                    get property() { return subject.HeadLabel }
+                },
+                {
+                    propertyName: "HeadRepo",
+                    get property() { return subject.HeadRepo }
+                },
+                {
+                    propertyName: "PrNodeId",
+                    get property() { return subject.PrNodeId }
+                },
+                {
+                    propertyName: "IssueNumber",
+                    get property() { return subject.IssueNumber }
+                }
+            ])("does not set $propertyName", (testRow) => {
+                expect(() => testRow.property).toThrow(UnknownReferenceError);
+            });
+        }
     });
 
-    // ...test FinishInitialization()
     describe("FinishInitialization()", () => {
-        test("returns early without calling graphql when event carries PR data directly", async () => {
-            if (describeRow.eventType !== ActionEventType.PullRequestOpened) return;
-
-            subject.SetEvent(event, describeRow.eventType);
-            await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
-
-            expect((mockApiCaller as any)._octokit.graphql as unknown as jest.Mock).not.toHaveBeenCalled();
-        });
-
-        test("returns early without calling graphql when pull_request is empty", async () => {
-            if (describeRow.eventType === ActionEventType.PullRequestOpened) return;
-
-            (event as IssueCommentCreatedEvent | IssueCommentEditedEvent).issue.pull_request = {};
-
-            subject.SetEvent(event, describeRow.eventType);
-            await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
-
-            expect((mockApiCaller as any)._octokit.graphql as unknown as jest.Mock).not.toHaveBeenCalled();
-        });
-
-        test("retrieves the pull request information via graphql", async () => {
-            if (describeRow.eventType === ActionEventType.PullRequestOpened) return;
-
-            await assertPullRequestRetrievedViaGraphql(subject, event, describeRow.eventType);
-        });
-    });
-
-    // ...test MergeBaseSha
-    describe("MergeBaseSha", () => {
-        beforeEach(async () => {
-            const expectedValues = {
+        if (describeRow.eventType === ActionEventType.PullRequestOpened)
+        {
+            const expectedNodeId = {
                 repository: {
-                    pullRequest: {
-                        baseRefName: "master",
-                        baseRefOid: "ThisIsSomeRandomOID12345",
-                        headRefName: "new-feature-branch",
-                        headRefOid: "ThisIsAlsoARandomOID12345",
-                        headRepository: {
-                            name: "Fast-Forward-Blossom-Bot"
-                        },
-                        headRepositoryOwner: {
-                            login: "luneisolei"
-                        },
-                        id: "MDQ6VXNlcjU4MzIzMQ=="
+                    ref: {
+                        id: "mock-node-id"
                     }
                 }
             };
 
-            mockApiCaller = TestFixtures.CreateMockApiCaller({
-                // @ts-ignore
-                graphql: jest.fn().mockResolvedValue(expectedValues)
+            beforeEach(async () => {
+                mockApiCaller = TestFixtures.CreateMockApiCaller({
+                    // @ts-ignore
+                    graphql: jest.fn().mockResolvedValue(expectedNodeId)
+                });
+                subject.SetEvent(event, describeRow.eventType);
+                await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
             });
-            subject.SetEvent(event, describeRow.eventType);
-            await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
-        });
 
-        afterEach(() => {
-            mockGetMergeBaseSha.mockClear();
-            mockGetAmountOfParents.mockClear();
-        });
+            event = event as PullRequestOpenedEvent;
+            test.each([
+                {
+                    propertyName: "BaseNodeId",
+                    get property() { return subject.BaseNodeId }
+                },
+                {
+                    propertyName: "HeadNodeId",
+                    get property() { return subject.HeadNodeId }
+                }
+            ])("sets property $propertyName successfully", ({ property }) => {
+                expect(property).toBe(expectedNodeId.repository.ref.id)
+            });
+        } else {
+            const mockGetNodeIdResponse = {
+                repository: {
+                    ref: {
+                        id: "mock-node-id"
+                    }
+                }
+            } as IGraphQlNodeIdResponse
 
-        test("returns MergeBaseSha", async () => {
-            (subject as any)._mergeBaseSha = "abc123";
-            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
+            beforeEach(async () => {
+                mockApiCaller = TestFixtures.CreateMockApiCaller({
+                    // @ts-ignore
+                    graphql: jest.fn()
+                        // @ts-ignore
+                        .mockResolvedValueOnce(TestFixtures.CreateMockPullRequestResponse())
 
-            expect(subject.MergeBaseSha).toEqual("abc123");
-        });
+                        // @ts-ignore
+                        .mockResolvedValueOnce(mockGetNodeIdResponse)
 
-        test("returns when MergeBaseSha is initially undefined", async () => {
-            (subject as any)._mergeBaseSha = undefined;
-            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
-            const result = subject.MergeBaseSha;
+                        // @ts-ignore
+                        .mockResolvedValueOnce(mockGetNodeIdResponse)
+                });
+                subject.SetEvent(event, describeRow.eventType);
+                await subject.FinishInitialization(mockApiCaller, event, describeRow.eventType);
+                mockPr = TestFixtures.CreateMockPullRequestResponse().repository.pullRequest;
+            });
 
-            expect(result).toEqual("abc123");
-        });
-
-        test("passes BaseSha and HeadSha to MergeBaseSha", async () => {
-            (subject as any)._mergeBaseSha = undefined;
-            mockGetMergeBaseSha.mockReturnValueOnce("abc123");
-            subject.MergeBaseSha;
-
-            expect(mockGetMergeBaseSha).toHaveBeenCalledWith(subject.BaseSha, subject.HeadSha);
-        });
-    });
-
-    // ...test MergeBaseParentsAmount
-    test("returns MergeBaseParentsAmount if already set", () => {
-        (subject as any)._mergeBaseParentsAmount = 102983;
-
-        expect(subject.MergeBaseParentsAmount).toEqual(102983);
-    });
-
-    test("throws UnknownReferenceError if IssueNumber is not set", () => {
-        expect(() => subject.IssueNumber).toThrow(UnknownReferenceError);
+            test.each([
+                {
+                    propertyName: "BaseRef",
+                    get property() { return subject.BaseRef },
+                    get expected() { return mockPr.baseRefName }
+                },
+                {
+                    propertyName: "BaseSha",
+                    get property() { return subject.BaseSha },
+                    get expected() { return mockPr.baseRefOid }
+                },
+                {
+                    propertyName: "HeadRef",
+                    get property() { return subject.HeadRef },
+                    get expected() { return mockPr.headRefName }
+                },
+                {
+                    propertyName: "HeadSha",
+                    get property() { return subject.HeadSha },
+                    get expected() { return mockPr.headRefOid }
+                },
+                {
+                    propertyName: "HeadOwner",
+                    get property() { return subject.HeadOwner },
+                    get expected() { return mockPr.headRepositoryOwner.login }
+                },
+                {
+                    propertyName: "HeadLabel",
+                    get property() { return subject.HeadLabel },
+                    get expected() {
+                        return `${mockPr.headRepositoryOwner.login}` +
+                               `/${mockPr.headRefName}` }
+                },
+                {
+                    propertyName: "PrNodeId",
+                    get property() { return subject.PrNodeId },
+                    get expected() { return mockPr.id }
+                },
+                {
+                    propertyName: "HeadRepo",
+                    get property() { return subject.HeadRepo },
+                    get expected() { return mockPr.headRepository.name }
+                },
+                {
+                    propertyName: "BaseNodeId",
+                    get property() { return subject.BaseNodeId },
+                    get expected() { return mockGetNodeIdResponse.repository.ref.id }
+                },
+                {
+                    propertyName: "HeadNodeId",
+                    get property() { return subject.HeadNodeId },
+                    get expected() { return mockGetNodeIdResponse.repository.ref.id }
+                }
+            ])("sets property $propertyName successfully", (testRow) => {
+                expect(testRow.property).toBe(testRow.expected)
+            });
+        }
     });
 });

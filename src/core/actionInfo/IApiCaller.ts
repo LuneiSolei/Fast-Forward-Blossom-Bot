@@ -10,4 +10,6 @@ export default interface IApiCaller
     GetCollaborator(owner: string, repoName: string, user: string): Promise<IGraphQlCollaboratorResponse>
     PostComment(nodeId: string, comment: string): Promise<void>;
     GetCommit(owner: string, repoName: string, sha: string): Promise<ICommit>;
+    GetNodeId(owner: string, repoName: string, qualifiedName: string): Promise<string>;
+    FastForward(nodeId: string, oid: string): Promise<void>;
 }
