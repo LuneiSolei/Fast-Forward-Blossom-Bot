@@ -19,6 +19,7 @@ import Options from "../../implements/options.js";
 import RepoInfo from "../../implements/repoInfo.js";
 import type ICommentBuilder from "../../core/ICommentBuilder.js";
 import type {IGraphQlPrResponse} from "../../core/githubApi/IGraphQlPrResponse.js";
+import type {IGraphQlNodeIdResponse} from "../../core/githubApi/IGraphQlNodeIdResponse.js";
 
 export default class TestFixtures
 {
@@ -42,7 +43,18 @@ export default class TestFixtures
         return JSON.parse(raw);
     }
 
-    public static CreateMockPullRequestResponse()
+    public static CreateMockNodeIdResponse(): IGraphQlNodeIdResponse
+    {
+        return{
+            repository: {
+                ref: {
+                    id: "mock-node-id"
+                }
+            }
+        }
+    }
+
+    public static CreateMockPullRequestResponse(): IGraphQlPrResponse
     {
         return {
             repository: {
@@ -60,7 +72,18 @@ export default class TestFixtures
                     }
                 }
             }
-        } as IGraphQlPrResponse;
+        };
+    }
+
+    public static CreateMockGit(overrides?: Partial<any>)
+    {
+        return {
+            CloneRepo: jest.fn(),
+            Log: jest.fn(),
+            GetMergeBaseSha: jest.fn(),
+            GetAmountOfParents: jest.fn(),
+            ...overrides
+        }
     }
 
     public static CreateMockPrInfo(overrides?: Partial<IPrInfo>): IPrInfo

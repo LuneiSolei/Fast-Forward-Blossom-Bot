@@ -7,7 +7,7 @@ import {ActionEventType} from "../core/actionEvent/actionEventType.js";
 import * as core from "@actions/core";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../core/actionEvent/actionEvent.js";
-import Git from "../core/git.js";
+import Git from "../core/git/git.js";
 import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
 import type IApiCaller from "../core/actionInfo/IApiCaller.js";
 import type {IGraphQlPrResponse} from "../core/githubApi/IGraphQlPrResponse.js";

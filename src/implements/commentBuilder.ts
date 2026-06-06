@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import Git from "../core/git.js";
+import Git from "../core/git/git.js";
 import type IPrInfo from "../core/actionInfo/IPrInfo.js";
 import type IRepoInfo from "../core/actionInfo/IRepoInfo.js";
 import type IActionInfo from "../core/actionInfo/IActionInfo.js";

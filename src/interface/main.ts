@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import CommentBuilder from "../implements/commentBuilder.js";
-import Git from "../core/git.js";
+import Git from "../core/git/git.js";
 import {execFile} from "node:child_process";
 import PrInfo from "../implements/prInfo.js";
 import Options from "../implements/options.js";
