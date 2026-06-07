@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
-import TestFixtures from "./testFixtures.js";
+import TestFixtures from "../testFixtures.js";
 import type ICommentBuilder from "../../core/ICommentBuilder.js";
 import type IEventInfo from "../../core/actionInfo/IEventInfo.js";
+import Git from "../../core/git/git.js";
 
 let subject: ICommentBuilder,
     mockActionInfo: IActionInfo,
@@ -20,6 +21,7 @@ function containsBothRefs(func: (...args: any) => any, ...args: any[])
 }
 
 beforeEach(() => {
+    jest.clearAllMocks();
     // Create new info objects every time while keeping their definitions towards the top of this file
     commentBuilder = TestFixtures.ConcreteCommentBuilder;
     mockActionInfo = TestFixtures.CreateMockActionInfo();
@@ -141,13 +143,31 @@ describe("addNotPossibleLines()", () => {
         expect(comment).toContain("\`\`\`shell");
     });
 
-    test("uses empty exclude when MergeBaseParentsAmount is 0", () => {
-        (subject as any)._actionInfo.Repo.Pr.MergeBaseParentsAmount = 0;
-        (mockActionInfo.Repo.Pr as any).MergeBaseParentsAmount = 0;
+    test("excludes commits from before MergeBaseSha when displaying the divergence point", async () => {
+        const mockPrInfo = TestFixtures.CreateMockPrInfo({
+            MergeBaseSha: "abc123",
+            MergeBaseParentsAmount: 50
+        });
+        jest.spyOn(Git, "Log");
+        subject = new commentBuilder(mockActionInfo, mockActionInfo.ApiCaller.GetCommit);
+        (subject as any)._prInfo = mockPrInfo;
         (subject as any).addNotPossibleLines();
-        const comment = (subject as any)._comment.join("\n");
 
-        expect(comment).toBeDefined();
+        expect(Git.Log).toHaveBeenCalledWith(mockPrInfo.MergeBaseSha, (subject as any)._prInfo.BaseSha, (subject as any)._prInfo.HeadSha)
+    });
+
+    test("uses empty exclude when MergeBaseParentsAmount is 0 and MergeBaseSha is an empty string", () => {
+        const mockPrInfo = TestFixtures.CreateMockPrInfo({
+            MergeBaseSha: "",
+            MergeBaseParentsAmount: 0
+        });
+
+        jest.spyOn(Git, "Log");
+        subject = new commentBuilder(mockActionInfo, mockActionInfo.ApiCaller.GetCommit);
+        (subject as any)._prInfo = mockPrInfo;
+        (subject as any).addNotPossibleLines();
+
+        expect(Git.Log).toHaveBeenCalledWith("", (subject as any)._prInfo.BaseSha, (subject as any)._prInfo.HeadSha)
     });
 });
 

@@ -5,7 +5,8 @@
             "login": "luneisolei"
         },
         "name": "Fast-Forward-Blossom-Bot-Tests",
-        "clone_url": "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot-Tests.git"
+        "clone_url": "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot-Tests.git",
+        "master_branch": "master"
     },
     "pull_request": {
         "base": {

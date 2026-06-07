@@ -9,6 +9,7 @@ import * as core from "@actions/core";
 import ActionInfo from "./actionInfo.js";
 import type {Octokit} from "@octokit/core";
 import UnknownReferenceError from "../core/errors/unknownReferenceError.js";
+import OctokitFactory from "./octokitFactory.js";
 
 export default class ActionInfoFactory
 {
@@ -54,8 +55,12 @@ export default class ActionInfoFactory
         core.debug("Done!");
 
         // Assign octokit to ApiCaller
+        const newOctokit = (this.isConstructor(apiCaller) && !octokit)
+            ? await OctokitFactory.Create(newRepo.Owner, newRepo.Name)
+            : octokit;
+
         const newApiCaller = (this.isConstructor(apiCaller)
-            ? new apiCaller(octokit)
+            ? new apiCaller(newOctokit)
             : apiCaller) as IApiCaller;
 
         // Get any authentication required info

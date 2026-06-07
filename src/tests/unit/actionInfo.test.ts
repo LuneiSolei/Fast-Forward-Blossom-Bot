@@ -1,12 +1,13 @@
-import {beforeAll, beforeEach, describe, expect, jest, test} from "@jest/globals";
+import {afterEach, beforeAll, beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IActionInfo from "../../core/actionInfo/IActionInfo.js";
-import TestFixtures from "./testFixtures.js";
+import TestFixtures from "../testFixtures.js";
 import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
 import type {IGraphQlNodeIdResponse} from "../../core/githubApi/IGraphQlNodeIdResponse.js";
 import UnknownReferenceError from "../../core/errors/unknownReferenceError.js";
 
 let subject: IActionInfo,
-    factory: typeof TestFixtures.ConcreteActionInfoFactory;
+    factory: typeof TestFixtures.ConcreteActionInfoFactory,
+    originalEventPath: string;
 
 describe.each([
     { eventType: ActionEventType.PullRequestOpened, get eventPath() { return TestFixtures.PullRequestOpenedEventPath }},
@@ -14,9 +15,14 @@ describe.each([
     { eventType: ActionEventType.IssueCommentEdited, get eventPath() { return TestFixtures.IssueCommentEditedEventPath }}
 ])("when event type is $eventType", (describeRow) => {
     beforeEach(() => {
+        originalEventPath = process.env["GITHUB_EVENT_PATH"] as string;
         process.env["GITHUB_EVENT_PATH"] = describeRow.eventPath;
         factory = TestFixtures.ConcreteActionInfoFactory;
     });
+
+    afterEach(() => {
+        process.env["GITHUB_EVENT_PATH"] = originalEventPath;
+    })
 
     describe("Create()", () => {
         test("uses premade instances to return an instance of IActionInfo", async () => {

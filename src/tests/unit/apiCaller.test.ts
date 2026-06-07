@@ -1,4 +1,4 @@
-import TestFixtures from "./testFixtures.js";
+import TestFixtures from "../testFixtures.js";
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IApiCaller from "../../core/actionInfo/IApiCaller.js";
 import {Octokit} from "@octokit/core";

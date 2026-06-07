@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 import type IEventInfo from "../../core/actionInfo/IEventInfo.js";
 import EventFileError from "../../core/errors/eventFileError.js";
 import InvalidEventError from "../../core/errors/invalidEventError.js";
-import TestFixtures from "./testFixtures.js";
+import TestFixtures from "../testFixtures.js";
 import type IOptions from "../../core/actionInfo/IOptions.js";
 import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, PullRequestOpenedEvent} from "@octokit/webhooks-types";

@@ -1,6 +1,6 @@
 import {ActionEventType} from "../../core/actionEvent/actionEventType.js";
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
-import TestFixtures from "./testFixtures.js";
+import TestFixtures from "../testFixtures.js";
 import type IPrInfo from "../../core/actionInfo/IPrInfo.js";
 import type {ActionEvent} from "../../core/actionEvent/actionEvent.js";
 import type {PullRequestOpenedEvent} from "@octokit/webhooks-types";

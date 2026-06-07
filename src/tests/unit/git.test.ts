@@ -7,7 +7,7 @@ jest.unstable_mockModule("node:child_process", () => ({
 }));
 
 const { default: Git } = await import("../../core/git/git.js");
-const { default: TestFixtures } = await import("./testFixtures.js");
+const { default: TestFixtures } = await import("../testFixtures.js");
 const { execSync } = await import("node:child_process");
 const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
 

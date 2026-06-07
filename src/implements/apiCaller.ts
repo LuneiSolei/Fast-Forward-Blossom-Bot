@@ -113,7 +113,7 @@ export default class ApiCaller implements IApiCaller
     {
         const res: IGraphQlNodeIdResponse = await this._octokit.graphql(`
             query GetNodeId($owner: String!, $repoName: String!, $qualifiedName: String!) {
-                repository(owner: $owner, repoName: $repoName) {
+                repository(owner: $owner, name: $repoName) {
                     ref(qualifiedName: $qualifiedName) {
                         id
                     }

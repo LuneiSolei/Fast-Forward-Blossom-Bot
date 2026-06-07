@@ -54,22 +54,16 @@ export default class Main
             process.exit(0);
         }
 
-        // Perform fast-forward
-        // info.ApiCaller.FastForward();
-
-        // TODO: detect comment posting conditions
-        if (info.Options.PostComment == "always" || "on-error")
-        {
+        // Perform fast-forward and post results
+        await info.ApiCaller.FastForward(info.Repo.Pr.BaseNodeId, info.Repo.Pr.HeadSha);
+        if (shouldPostComment)
             await info.ApiCaller.PostComment(info.Repo.Pr.PrNodeId, comment);
-        }
-
-        // TODO: perform fast-forward locally(?)
-        //  Or perhaps see if graphql/rest APIs support doing so remotely
 
         this.Cleanup();
     }
 
-    private static Cleanup() {
+    private static Cleanup()
+    {
         core.info("Performing Cleanup...");
 
         const cwd = process.cwd();
