@@ -1,0 +1,1 @@
+{"version":3,"file":"invalidEventError.d.ts","sourceRoot":"","sources":["file:///home/runner/work/Fast-Forward-Blossom-Bot/Fast-Forward-Blossom-Bot/src/core/errors/invalidEventError.ts"],"names":[],"mappings":"AAAA,OAAO,WAAW,MAAM,kBAAkB,CAAC;AAE3C,MAAM,CAAC,OAAO,OAAO,iBAAkB,SAAQ,WAAW;gBAE1C,KAAK,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM;CAK5C"}
