@@ -1,0 +1,1 @@
+{"version":3,"file":"IRepoInfo.d.ts","sourceRoot":"","sources":["../../../src/core/actionInfo/IRepoInfo.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,OAAO,MAAM,cAAc,CAAC;AAExC,MAAM,CAAC,OAAO,WAAW,SAAS;IAE9B,IAAI,IAAI,IAAI,MAAM,CAAC;IACnB,IAAI,EAAE,IAAI,OAAO,CAAC;IAElB,IAAI,KAAK,IAAI,MAAM,CAAC;IACpB,IAAI,QAAQ,IAAI,MAAM,CAAC;CAC1B"}

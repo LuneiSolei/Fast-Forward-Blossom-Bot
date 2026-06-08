@@ -1,0 +1,1 @@
+{"version":3,"file":"IGraphQlNodeIdResponse.d.ts","sourceRoot":"","sources":["../../../src/core/githubApi/IGraphQlNodeIdResponse.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,sBAAsB,GAAG;IACjC,UAAU,EAAE;QACR,GAAG,EAAE;YACD,EAAE,EAAE,MAAM,CAAC;SACd,CAAA;KACJ,CAAA;CACJ,CAAA"}

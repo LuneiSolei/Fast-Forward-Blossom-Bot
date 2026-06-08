@@ -1,0 +1,45 @@
+import { Octokit } from "@octokit/core";
+import { createAppAuth } from "@octokit/auth-app";
+import fs from "node:fs";
+import * as core from "@actions/core";
+import AppNotInstalledError from "../core/errors/appNotInstalledError.js";
+import OctokitInitError from "../core/errors/octokitInitError.js";
+export default class OctokitFactory {
+    static async Create(owner, repoName) {
+        core.debug("Creating Octokit instance...");
+        const appId = process.env["APP_CLIENT_ID"];
+        const privateKey = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"], "utf8");
+        let octokit;
+        // Create Octokit JWT
+        try {
+            octokit = new Octokit({
+                authStrategy: createAppAuth,
+                auth: { appId, privateKey }
+            });
+        }
+        catch (error) {
+            throw new OctokitInitError(error.message);
+        }
+        core.debug(`Getting installation key for ${owner}'s ${repoName}`);
+        // Find repo installation ID
+        let installationId;
+        try {
+            const res = await octokit.request("GET /repos/{owner}/{repo}/installation", { owner, repo: repoName });
+            installationId = res.data.id;
+        }
+        catch (error) {
+            throw new AppNotInstalledError(owner, repoName, error.message);
+        }
+        // Authenticate - Octokit should automatically handle getting an installation token using the installation ID
+        try {
+            return new Octokit({
+                authStrategy: createAppAuth,
+                auth: { appId, privateKey, installationId }
+            });
+        }
+        catch (error) {
+            throw new OctokitInitError(error.message);
+        }
+    }
+}
+//# sourceMappingURL=octokitFactory.js.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"octokitFactory.d.ts","sourceRoot":"","sources":["../../src/core/octokitFactory.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,eAAe,CAAC;AAKtC,MAAM,CAAC,OAAO,OAAO,cAAc;WAEX,MAAM,CAAC,KAAK,EAAE,MAAM,EAAE,QAAQ,EAAE,MAAM,GAAG,OAAO,CAAC,OAAO,CAAC;CA4ChF"}

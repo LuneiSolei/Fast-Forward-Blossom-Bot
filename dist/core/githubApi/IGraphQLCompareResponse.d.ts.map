@@ -1,0 +1,1 @@
+{"version":3,"file":"IGraphQLCompareResponse.d.ts","sourceRoot":"","sources":["../../../src/core/githubApi/IGraphQLCompareResponse.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,uBAAuB,GAAG;IAClC,UAAU,EAAE;QACR,aAAa,EAAE;YACX,UAAU,EAAE,MAAM,CAAA;SACrB,CAAA;KACJ,CAAA;CACJ,CAAA"}
