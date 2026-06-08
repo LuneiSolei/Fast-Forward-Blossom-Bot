@@ -35488,7 +35488,13 @@ class OctokitFactory {
     static async Create(owner, repoName) {
         core_debug("Creating Octokit instance...");
         const appId = process.env["APP_CLIENT_ID"];
-        const privateKey = external_node_fs_default().readFileSync(process.env["APP_PRIVATE_KEY_PATH"], "utf8");
+        let privateKey;
+        if (process.env["APP_PRIVATE_KEY_PATH"].length > 0) {
+            privateKey = external_node_fs_default().readFileSync(process.env["APP_PRIVATE_KEY_PATH"], "utf8");
+        }
+        else {
+            privateKey = process.env["APP_PRIVATE_KEY"];
+        }
         let octokit;
         // Create Octokit JWT
         try {

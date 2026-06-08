@@ -11,7 +11,14 @@ export default class OctokitFactory
     {
         core.debug("Creating Octokit instance...");
         const appId = process.env["APP_CLIENT_ID"] as string;
-        const privateKey = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"] as string, "utf8");
+        let privateKey;
+        if ((process.env["APP_PRIVATE_KEY_PATH"] as string).length > 0)
+        {
+            privateKey = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"] as string, "utf8");
+        } else {
+            privateKey = process.env["APP_PRIVATE_KEY"] as string;
+        }
+
         let octokit: Octokit;
 
         // Create Octokit JWT
