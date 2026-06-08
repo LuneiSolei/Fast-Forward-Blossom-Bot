@@ -22,7 +22,12 @@ inputs:
             "never" - No comment is posted. The comment is still available 
             via the comment output variable and in the step's summary.
         default: "on-error"
+    custom_command:
+        required: true
+        description: >
+            "The command to be used to trigger the bot."
+        default: "/fast-forward"
 
 runs:
-    using: node20
+    using: node24
     main: dist/interface/index.js
