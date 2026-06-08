@@ -35643,5 +35643,7 @@ async function run() {
 ;// CONCATENATED MODULE: ./src/interface/index.ts
 
 
-Main.run().catch(err => core_error(err.message));
+Main.run().catch(err => {
+    setFailed(err.message);
+});
 
