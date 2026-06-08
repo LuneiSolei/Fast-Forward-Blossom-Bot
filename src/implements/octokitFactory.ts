@@ -12,7 +12,7 @@ export default class OctokitFactory
         core.debug("Creating Octokit instance...");
         const appId = process.env["APP_CLIENT_ID"] as string;
         let privateKey;
-        if ((process.env["APP_PRIVATE_KEY_PATH"] as string).length > 0)
+        if (process.env["APP_PRIVATE_KEY_PATH"] as string)
         {
             privateKey = fs.readFileSync(process.env["APP_PRIVATE_KEY_PATH"] as string, "utf8");
         } else {

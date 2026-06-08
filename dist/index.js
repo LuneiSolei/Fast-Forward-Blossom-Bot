@@ -35489,7 +35489,7 @@ class OctokitFactory {
         core_debug("Creating Octokit instance...");
         const appId = process.env["APP_CLIENT_ID"];
         let privateKey;
-        if (process.env["APP_PRIVATE_KEY_PATH"].length > 0) {
+        if (process.env["APP_PRIVATE_KEY_PATH"]) {
             privateKey = external_node_fs_default().readFileSync(process.env["APP_PRIVATE_KEY_PATH"], "utf8");
         }
         else {
