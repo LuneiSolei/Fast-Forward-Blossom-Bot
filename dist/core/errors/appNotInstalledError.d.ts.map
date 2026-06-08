@@ -1,1 +1,0 @@
-{"version":3,"file":"appNotInstalledError.d.ts","sourceRoot":"","sources":["file:///home/runner/work/Fast-Forward-Blossom-Bot/Fast-Forward-Blossom-Bot/src/core/errors/appNotInstalledError.ts"],"names":[],"mappings":"AAAA,OAAO,WAAW,MAAM,kBAAkB,CAAC;AAE3C,MAAM,CAAC,OAAO,OAAO,oBAAqB,SAAQ,WAAW;gBAE7C,KAAK,EAAE,MAAM,EAAE,QAAQ,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM;CAK9D"}

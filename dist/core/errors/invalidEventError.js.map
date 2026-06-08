@@ -1,1 +1,0 @@
-{"version":3,"file":"invalidEventError.js","sourceRoot":"","sources":["../../../src/core/errors/invalidEventError.ts"],"names":[],"mappings":"AAAA,OAAO,WAAW,MAAM,kBAAkB,CAAC;AAE3C,MAAM,CAAC,OAAO,OAAO,iBAAkB,SAAQ,WAAW;IAEtD,YAAY,KAAa,EAAE,MAAc;QAErC,MAAM,OAAO,GAAG,2BAA2B,KAAK,EAAE,CAAC;QACnD,KAAK,CAAC,OAAO,EAAE,MAAM,CAAC,CAAC;IAC3B,CAAC;CACJ"}

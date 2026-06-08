@@ -1,1 +1,0 @@
-{"version":3,"file":"appNotInstalledError.js","sourceRoot":"","sources":["../../../src/core/errors/appNotInstalledError.ts"],"names":[],"mappings":"AAAA,OAAO,WAAW,MAAM,kBAAkB,CAAC;AAE3C,MAAM,CAAC,OAAO,OAAO,oBAAqB,SAAQ,WAAW;IAEzD,YAAY,KAAa,EAAE,QAAgB,EAAE,MAAc;QAEvD,MAAM,OAAO,GAAG,iFAAiF,KAAK,IAAI,QAAQ,GAAG,CAAC;QACtH,KAAK,CAAC,OAAO,EAAE,MAAM,CAAC,CAAC;IAC3B,CAAC;CACJ"}
