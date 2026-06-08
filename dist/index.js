@@ -35488,12 +35488,18 @@ class OctokitFactory {
     static async Create(owner, repoName) {
         core_debug("Creating Octokit instance...");
         const appId = process.env["APP_CLIENT_ID"];
+        if (appId === undefined) {
+            throw new OctokitInitError("GitHub App Client ID could not be obtained.");
+        }
         let privateKey;
         if (process.env["APP_PRIVATE_KEY_PATH"]) {
             privateKey = external_node_fs_default().readFileSync(process.env["APP_PRIVATE_KEY_PATH"], "utf8");
         }
         else {
             privateKey = process.env["APP_PRIVATE_KEY"];
+        }
+        if (privateKey === undefined) {
+            throw new OctokitInitError("GitHub App Private Key could not be obtained.");
         }
         let octokit;
         // Create Octokit JWT
