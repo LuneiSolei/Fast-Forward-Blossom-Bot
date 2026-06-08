@@ -2,10 +2,10 @@ name: "Fast Forward Composite Action"
 description: "Fast forward the target branch from a pull request."
 author: "Lunei Solei"
 inputs:
-    client-id:
+    app_client_id:
       description: 'GitHub Client ID'
       required: false
-    private-key:
+    app_private_key:
       description: 'GitHub App Private Key'
       required: false
     github_token:
